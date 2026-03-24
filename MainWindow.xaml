@@ -282,16 +282,113 @@
                     </Grid>
                 </Border>
 
-                <!-- Side Panel Area (collapsed by default, used in Phase 3) -->
+                <!-- Side Panel: Add/Edit Form -->
                 <Border x:Name="SidePanel" Grid.Column="1" Margin="12,0,0,0"
                         CornerRadius="8" BorderThickness="1"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         Visibility="Collapsed">
-                    <StackPanel Padding="20" VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <TextBlock Text="Side panel — Phase 3" FontSize="13"
-                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
-                    </StackPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+                        <StackPanel Spacing="14">
+                            <!-- Header -->
+                            <Grid Margin="0,0,0,4">
+                                <TextBlock x:Name="SidePanelHeader" Text="New Record"
+                                           FontSize="18" FontWeight="SemiBold"/>
+                                <Button HorizontalAlignment="Right" Click="CloseSidePanel_Click"
+                                        ToolTipService.ToolTip="Close">
+                                    <FontIcon Glyph="&#xE711;" FontSize="12"/>
+                                </Button>
+                            </Grid>
+
+                            <!-- Image Drop Zone -->
+                            <Grid x:Name="FormImageDropZone" MinHeight="100" CornerRadius="8"
+                                  Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                  BorderThickness="1" AllowDrop="True"
+                                  DragOver="FormImageDropZone_DragOver"
+                                  Drop="FormImageDropZone_Drop">
+
+                                <!-- Image thumbnails -->
+                                <ItemsControl x:Name="FormImageList" Margin="8"
+                                              Visibility="Collapsed">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Width="72" Height="72" CornerRadius="6">
+                                                <Image Source="{Binding ImageSource}" Stretch="UniformToFill"/>
+                                                <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                        Width="20" Height="20" Padding="0"
+                                                        Click="RemoveImage_Click" Tag="{Binding}"
+                                                        CornerRadius="10"
+                                                        Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}">
+                                                    <FontIcon Glyph="&#xE711;" FontSize="8"
+                                                              Foreground="White"/>
+                                                </Button>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Placeholder -->
+                                <StackPanel x:Name="FormImagePlaceholder" VerticalAlignment="Center"
+                                            HorizontalAlignment="Center" Spacing="4">
+                                    <FontIcon Glyph="&#xE722;" FontSize="24"
+                                              HorizontalAlignment="Center"
+                                              Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                    <TextBlock Text="Drag images here or" FontSize="12"
+                                               HorizontalAlignment="Center"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <HyperlinkButton Content="Browse files" Click="BrowseImage_Click"
+                                                     HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Title -->
+                            <TextBox x:Name="FormTitle" Header="Title"
+                                     PlaceholderText="e.g. Office Supplies"/>
+
+                            <!-- Category -->
+                            <ComboBox x:Name="FormCategory" Header="Category"
+                                      IsEditable="True" PlaceholderText="Select or type..."
+                                      HorizontalAlignment="Stretch"/>
+
+                            <!-- Amount -->
+                            <NumberBox x:Name="FormAmount" Header="Amount"
+                                       PlaceholderText="0.00"
+                                       SpinButtonPlacementMode="Compact"
+                                       SmallChange="1" LargeChange="100"/>
+
+                            <!-- Date -->
+                            <CalendarDatePicker x:Name="FormDate" Header="Date"
+                                                HorizontalAlignment="Stretch"
+                                                PlaceholderText="Select date"/>
+
+                            <!-- Description -->
+                            <TextBox x:Name="FormDescription" Header="Description"
+                                     PlaceholderText="Add details..."
+                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80"/>
+
+                            <!-- Action Buttons -->
+                            <Grid Margin="0,8,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="Cancel"
+                                        HorizontalAlignment="Stretch"
+                                        Click="CloseSidePanel_Click"/>
+                                <Button Grid.Column="2" Content="Save"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        HorizontalAlignment="Stretch"
+                                        Click="SaveRecord_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Border>
             </Grid>
 
@@ -302,10 +399,101 @@
             </Grid>
         </Grid>
 
-        <!-- ==================== Detail Panel (Phase 3) ==================== -->
+        <!-- ==================== Detail Panel (full-page) ==================== -->
         <Grid x:Name="DetailPanel" Grid.Row="1" Visibility="Collapsed" Padding="32,16,32,24">
-            <TextBlock Text="Detail view — Phase 3" VerticalAlignment="Center" HorizontalAlignment="Center"
-                       Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>   <!-- Back button -->
+                <RowDefinition Height="*"/>      <!-- Content -->
+            </Grid.RowDefinitions>
+
+            <!-- Back Button -->
+            <Button Grid.Row="0" Click="DetailBack_Click" Margin="0,0,0,16">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE72B;" FontSize="14"/>
+                    <TextBlock Text="Back to Records"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Detail Content -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="800" HorizontalAlignment="Left" Spacing="20">
+
+                    <!-- Image Gallery -->
+                    <Grid x:Name="DetailImageSection" Visibility="Collapsed">
+                        <FlipView x:Name="DetailImageGallery" Height="300"
+                                  Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                  CornerRadius="12">
+                            <FlipView.ItemTemplate>
+                                <DataTemplate>
+                                    <Image Source="{Binding ImageSource}" Stretch="Uniform"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </FlipView.ItemTemplate>
+                        </FlipView>
+                    </Grid>
+
+                    <!-- Record Info -->
+                    <Border CornerRadius="8" Padding="24"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <StackPanel Spacing="16">
+                            <!-- Title -->
+                            <TextBlock x:Name="DetailTitle" FontSize="24" FontWeight="SemiBold"
+                                       TextWrapping="Wrap"/>
+
+                            <!-- Category + Date row -->
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <Border Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                        CornerRadius="12" Padding="12,6">
+                                    <TextBlock x:Name="DetailCategory" FontSize="12" FontWeight="Medium"
+                                               Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"/>
+                                </Border>
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE787;" FontSize="14"
+                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock x:Name="DetailDate" FontSize="13"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Amount -->
+                            <StackPanel>
+                                <TextBlock Text="Amount" FontSize="12"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="DetailAmount" FontSize="32" FontWeight="Bold"
+                                           FontFamily="Cascadia Code,Consolas,Courier New"
+                                           Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <!-- Description -->
+                            <StackPanel x:Name="DetailDescriptionSection">
+                                <TextBlock Text="Description" FontSize="12"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="DetailDescription" FontSize="14"
+                                           TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Click="DetailEdit_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE70F;" FontSize="14"/>
+                                <TextBlock Text="Edit"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Click="DetailDelete_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE74D;" FontSize="14"
+                                          Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                <TextBlock Text="Delete"
+                                           Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
 
         <!-- ==================== Settings Panel (Phase 6) ==================== -->
