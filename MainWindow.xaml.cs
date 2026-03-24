@@ -92,6 +92,7 @@ public sealed partial class MainWindow : Window
 
     private void DetermineStartupScreen()
     {
+        var l = App.Localization;
         if (!App.License.IsActivated())
         {
             ActivationMacAddress.Text = _activationViewModel.MacAddress;
@@ -99,17 +100,17 @@ public sealed partial class MainWindow : Window
         }
         else if (!App.Auth.IsPasswordSet())
         {
-            LoginTitle.Text = "Set Password";
-            LoginSubtitle.Text = "Create a password to protect your data";
-            LoginButton.Content = "Set Password";
+            LoginTitle.Text = l.Get("login.title_setup");
+            LoginSubtitle.Text = l.Get("login.subtitle_setup");
+            LoginButton.Content = l.Get("login.button_setup");
             LoginConfirmPassword.Visibility = Visibility.Visible;
             ShowPanel("Login");
         }
         else
         {
-            LoginTitle.Text = "Welcome Back";
-            LoginSubtitle.Text = "Enter your password to continue";
-            LoginButton.Content = "Login";
+            LoginTitle.Text = l.Get("login.title_welcome");
+            LoginSubtitle.Text = l.Get("login.subtitle_login");
+            LoginButton.Content = l.Get("login.button_login");
             LoginConfirmPassword.Visibility = Visibility.Collapsed;
             ShowPanel("Login");
         }
@@ -846,6 +847,45 @@ public sealed partial class MainWindow : Window
         FormDescription.PlaceholderText = l.Get("form.desc_placeholder");
         FormSaveButton.Content = l.Get("form.save");
         FormCancelButton.Content = l.Get("form.cancel");
+
+        // Activation panel
+        ActivationTitle.Text = l.Get("activation.title");
+        ActivationSubtitle.Text = l.Get("activation.subtitle");
+        ActivationMacLabel.Text = l.Get("activation.mac_label");
+        ActivationKeyInput.Header = l.Get("activation.key_header");
+        ActivationKeyInput.PlaceholderText = l.Get("activation.key_placeholder");
+        ActivateButton.Content = l.Get("activation.button");
+
+        // Login panel
+        LoginPassword.Header = l.Get("login.password_header");
+        LoginPassword.PlaceholderText = l.Get("login.password_placeholder");
+        LoginConfirmPassword.Header = l.Get("login.confirm_header");
+        LoginConfirmPassword.PlaceholderText = l.Get("login.confirm_placeholder");
+
+        // Settings panel
+        SettingsTitleText.Text = l.Get("settings.title");
+        SettingsSecurityLabel.Text = l.Get("settings.security");
+        SettingsOldPassword.Header = l.Get("settings.old_password");
+        SettingsOldPassword.PlaceholderText = l.Get("settings.old_password_placeholder");
+        SettingsNewPassword.Header = l.Get("settings.new_password");
+        SettingsNewPassword.PlaceholderText = l.Get("settings.new_password_placeholder");
+        SettingsConfirmPassword.Header = l.Get("settings.confirm_password");
+        SettingsConfirmPassword.PlaceholderText = l.Get("settings.confirm_password_placeholder");
+        SettingsChangePasswordBtn.Content = l.Get("settings.change_password");
+        SettingsCategoriesLabel.Text = l.Get("settings.categories");
+        SettingsNewCategory.PlaceholderText = l.Get("settings.new_category_placeholder");
+        SettingsAddCategoryBtn.Content = l.Get("settings.add_category");
+        SettingsThemeLabel.Text = l.Get("settings.theme");
+        ThemeDefault.Content = l.Get("settings.theme_default");
+        ThemeLight.Content = l.Get("settings.theme_light");
+        ThemeDark.Content = l.Get("settings.theme_dark");
+        SettingsLanguageLabel.Text = l.Get("settings.language");
+        SettingsTextCustomLabel.Text = l.Get("settings.text_customization");
+        SettingsTextResetButton.Content = l.Get("settings.text_reset");
+        SettingsLicenseLabel.Text = l.Get("settings.license");
+        SettingsMacLabel.Text = l.Get("settings.license_mac");
+        SettingsKeyLabel.Text = l.Get("settings.license_key");
+        SettingsDeactivateBtn.Content = l.Get("settings.license_deactivate");
     }
 }
 

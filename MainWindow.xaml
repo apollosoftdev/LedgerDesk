@@ -601,9 +601,9 @@
                     <FontIcon Glyph="&#xE72E;" FontSize="48"
                               Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="License Activation" FontSize="24" FontWeight="SemiBold"
+                    <TextBlock x:Name="ActivationTitle" Text="License Activation" FontSize="24" FontWeight="SemiBold"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="Enter your license key to activate LedgerDesk"
+                    <TextBlock x:Name="ActivationSubtitle" Text="Enter your license key to activate LedgerDesk"
                                FontSize="13"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                HorizontalAlignment="Center"/>
@@ -614,7 +614,7 @@
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Device ID (MAC Address)" FontSize="12"
+                        <TextBlock x:Name="ActivationMacLabel" Text="Device ID (MAC Address)" FontSize="12"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                         <TextBlock x:Name="ActivationMacAddress"
                                    FontSize="16" FontFamily="Cascadia Code,Consolas,Courier New"
@@ -634,7 +634,7 @@
                            HorizontalAlignment="Center"/>
 
                 <!-- Activate Button -->
-                <Button Content="Activate" Style="{StaticResource AccentButtonStyle}"
+                <Button x:Name="ActivateButton" Content="Activate" Style="{StaticResource AccentButtonStyle}"
                         HorizontalAlignment="Stretch" Click="Activate_Click"/>
             </StackPanel>
         </Grid>
@@ -697,7 +697,7 @@
 
                     <!-- Header -->
                     <Grid Grid.Row="0" Margin="0,0,0,20">
-                        <TextBlock Text="Settings" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="SettingsTitleText" Text="Settings" FontSize="22" FontWeight="SemiBold"/>
                         <Button HorizontalAlignment="Right" Click="SettingsBack_Click"
                                 ToolTipService.ToolTip="Close">
                             <FontIcon Glyph="&#xE711;" FontSize="14"/>
@@ -713,7 +713,7 @@
                                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                                 <StackPanel Spacing="12">
-                                    <TextBlock Text="Security" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="SettingsSecurityLabel" Text="Security" FontSize="16" FontWeight="SemiBold"/>
                                     <PasswordBox x:Name="SettingsOldPassword" Header="Current Password"
                                                  PlaceholderText="Enter current password"/>
                                     <PasswordBox x:Name="SettingsNewPassword" Header="New Password"
@@ -722,7 +722,7 @@
                                                  PlaceholderText="Re-enter new password"/>
                                     <TextBlock x:Name="SettingsPasswordMessage" FontSize="13"
                                                Visibility="Collapsed"/>
-                                    <Button Content="Change Password" Click="ChangePassword_Click"/>
+                                    <Button x:Name="SettingsChangePasswordBtn" Content="Change Password" Click="ChangePassword_Click"/>
                                 </StackPanel>
                             </Border>
 
@@ -731,7 +731,7 @@
                                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                                 <StackPanel Spacing="12">
-                                    <TextBlock Text="Categories" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="SettingsCategoriesLabel" Text="Categories" FontSize="16" FontWeight="SemiBold"/>
 
                                     <ListView x:Name="SettingsCategoryList" SelectionMode="None"
                                               MaxHeight="250">
@@ -771,7 +771,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBox x:Name="SettingsNewCategory" Grid.Column="0"
                                                  PlaceholderText="New category name"/>
-                                        <Button Grid.Column="2" Content="Add" Click="AddCategory_Click"/>
+                                        <Button x:Name="SettingsAddCategoryBtn" Grid.Column="2" Content="Add" Click="AddCategory_Click"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -781,11 +781,11 @@
                                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                                 <StackPanel Spacing="12">
-                                    <TextBlock Text="Theme" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="SettingsThemeLabel" Text="Theme" FontSize="16" FontWeight="SemiBold"/>
                                     <RadioButtons x:Name="SettingsTheme" SelectionChanged="ThemeChanged">
-                                        <RadioButton Content="System Default" Tag="Default"/>
-                                        <RadioButton Content="Light" Tag="Light"/>
-                                        <RadioButton Content="Dark" Tag="Dark"/>
+                                        <RadioButton x:Name="ThemeDefault" Content="System Default" Tag="Default"/>
+                                        <RadioButton x:Name="ThemeLight" Content="Light" Tag="Light"/>
+                                        <RadioButton x:Name="ThemeDark" Content="Dark" Tag="Dark"/>
                                     </RadioButtons>
                                 </StackPanel>
                             </Border>
@@ -848,22 +848,22 @@
                                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                                 <StackPanel Spacing="12">
-                                    <TextBlock Text="License Info" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="SettingsLicenseLabel" Text="License Info" FontSize="16" FontWeight="SemiBold"/>
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="Device ID (MAC Address)" FontSize="12"
+                                        <TextBlock x:Name="SettingsMacLabel" Text="Device ID (MAC Address)" FontSize="12"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                         <TextBlock x:Name="SettingsMacAddress"
                                                    FontFamily="Cascadia Code,Consolas,Courier New"
                                                    IsTextSelectionEnabled="True"/>
                                     </StackPanel>
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="License Key" FontSize="12"
+                                        <TextBlock x:Name="SettingsKeyLabel" Text="License Key" FontSize="12"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                         <TextBlock x:Name="SettingsLicenseKey"
                                                    FontFamily="Cascadia Code,Consolas,Courier New"
                                                    IsTextSelectionEnabled="True"/>
                                     </StackPanel>
-                                    <Button Content="Deactivate License" Click="DeactivateLicense_Click"/>
+                                    <Button x:Name="SettingsDeactivateBtn" Content="Deactivate License" Click="DeactivateLicense_Click"/>
                                 </StackPanel>
                             </Border>
 
