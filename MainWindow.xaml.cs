@@ -3,7 +3,6 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Imaging;
 using LedgerDesk.Models;
 using LedgerDesk.ViewModels;
 using Windows.ApplicationModel.DataTransfer;
@@ -71,19 +70,58 @@ public sealed partial class MainWindow : Window
     private void ShowPanel(string panel)
     {
         MainPanel.Visibility = panel == "Main" ? Visibility.Visible : Visibility.Collapsed;
-        DetailPanel.Visibility = panel == "Detail" ? Visibility.Visible : Visibility.Collapsed;
         SettingsPanel.Visibility = panel == "Settings" ? Visibility.Visible : Visibility.Collapsed;
         _mainViewModel.NavigateTo(panel);
     }
 
     // ============================
-    //  Side Panel (Add/Edit)
+    //  Side Panel
     // ============================
 
-    private void OpenSidePanel()
+    private void OpenSidePanelDetail(int recordId)
     {
-        SidePanelColumn.Width = new GridLength(360);
-        SidePanel.Visibility = Visibility.Visible;
+        _detailViewModel.LoadRecord(recordId);
+        var record = _detailViewModel.Record;
+        if (record is null) return;
+
+        // Populate detail fields
+        DetailTitle.Text = record.Title;
+        DetailCategory.Text = record.Category;
+        DetailDate.Text = record.DateDisplay;
+        DetailAmount.Text = record.AmountDisplay;
+        DetailAmount.Foreground = record.Amount switch
+        {
+            > 0 => new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 16, 185, 129)),
+            < 0 => new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 239, 68, 68)),
+            _ => new SolidColorBrush(Microsoft.UI.Colors.Gray),
+        };
+
+        if (string.IsNullOrWhiteSpace(record.Description))
+        {
+            DetailDescriptionSection.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            DetailDescriptionSection.Visibility = Visibility.Visible;
+            DetailDescription.Text = record.Description;
+        }
+
+        // Images
+        if (_detailViewModel.HasImages)
+        {
+            DetailImageGallery.Visibility = Visibility.Visible;
+            DetailImageGallery.ItemsSource = _detailViewModel.Images;
+        }
+        else
+        {
+            DetailImageGallery.Visibility = Visibility.Collapsed;
+        }
+
+        ShowSidePanel("Detail");
+    }
+
+    private void OpenSidePanelForm()
+    {
         SidePanelHeader.Text = _formViewModel.HeaderText;
 
         // Populate category ComboBox
@@ -99,12 +137,23 @@ public sealed partial class MainWindow : Window
         FormDescription.Text = _formViewModel.Description;
 
         UpdateFormImageDisplay();
+        ShowSidePanel("Form");
+    }
+
+    private void ShowSidePanel(string mode)
+    {
+        SidePanelColumn.Width = new GridLength(380);
+        SidePanel.Visibility = Visibility.Visible;
+        SidePanelDetail.Visibility = mode == "Detail" ? Visibility.Visible : Visibility.Collapsed;
+        SidePanelForm.Visibility = mode == "Form" ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void CloseSidePanel()
     {
         SidePanelColumn.Width = new GridLength(0);
         SidePanel.Visibility = Visibility.Collapsed;
+        SidePanelDetail.Visibility = Visibility.Collapsed;
+        SidePanelForm.Visibility = Visibility.Collapsed;
         ViewModel.SidePanelMode = "None";
     }
 
@@ -124,7 +173,7 @@ public sealed partial class MainWindow : Window
         _formViewModel.ResetForAdd();
         ViewModel.SidePanelMode = "Add";
         RecordListView.SelectedItem = null;
-        OpenSidePanel();
+        OpenSidePanelForm();
     }
 
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
@@ -159,7 +208,7 @@ public sealed partial class MainWindow : Window
     }
 
     // ============================
-    //  Record List Selection → Detail
+    //  Record List Selection → Detail in side panel
     // ============================
 
     private void RecordListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -167,65 +216,13 @@ public sealed partial class MainWindow : Window
         if (RecordListView.SelectedItem is Record selected)
         {
             ViewModel.SelectedRecord = selected;
-            NavigateToDetail(selected.Id);
+            OpenSidePanelDetail(selected.Id);
         }
-    }
-
-    private void NavigateToDetail(int recordId)
-    {
-        _detailViewModel.LoadRecord(recordId);
-        var record = _detailViewModel.Record;
-        if (record is null) return;
-
-        // Populate detail UI
-        DetailTitle.Text = record.Title;
-        DetailCategory.Text = record.Category;
-        DetailDate.Text = record.DateDisplay;
-        DetailAmount.Text = record.AmountDisplay;
-
-        // Color the amount
-        DetailAmount.Foreground = record.Amount switch
-        {
-            > 0 => new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 16, 185, 129)),
-            < 0 => new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 239, 68, 68)),
-            _ => new SolidColorBrush(Microsoft.UI.Colors.Gray),
-        };
-
-        // Description
-        if (string.IsNullOrWhiteSpace(record.Description))
-        {
-            DetailDescriptionSection.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            DetailDescriptionSection.Visibility = Visibility.Visible;
-            DetailDescription.Text = record.Description;
-        }
-
-        // Images
-        if (_detailViewModel.HasImages)
-        {
-            DetailImageSection.Visibility = Visibility.Visible;
-            DetailImageGallery.ItemsSource = _detailViewModel.Images;
-        }
-        else
-        {
-            DetailImageSection.Visibility = Visibility.Collapsed;
-        }
-
-        CloseSidePanel();
-        ShowPanel("Detail");
     }
 
     // ============================
-    //  Detail Actions
+    //  Detail Actions (in side panel)
     // ============================
-
-    private void DetailBack_Click(object sender, RoutedEventArgs e)
-    {
-        RecordListView.SelectedItem = null;
-        ShowPanel("Main");
-    }
 
     private void DetailEdit_Click(object sender, RoutedEventArgs e)
     {
@@ -233,8 +230,7 @@ public sealed partial class MainWindow : Window
 
         _formViewModel.LoadForEdit(_detailViewModel.Record);
         ViewModel.SidePanelMode = "Edit";
-        ShowPanel("Main");
-        OpenSidePanel();
+        OpenSidePanelForm();
     }
 
     private async void DetailDelete_Click(object sender, RoutedEventArgs e)
@@ -254,8 +250,8 @@ public sealed partial class MainWindow : Window
         if (await dialog.ShowAsync() == ContentDialogResult.Primary)
         {
             _detailViewModel.DeleteRecord();
+            CloseSidePanel();
             ViewModel.LoadRecords();
-            ShowPanel("Main");
         }
     }
 
@@ -265,7 +261,6 @@ public sealed partial class MainWindow : Window
 
     private void SaveRecord_Click(object sender, RoutedEventArgs e)
     {
-        // Read form values into ViewModel
         _formViewModel.Title = FormTitle.Text?.Trim() ?? "";
         _formViewModel.Category = FormCategory.Text?.Trim() ?? "";
         _formViewModel.Description = FormDescription.Text?.Trim() ?? "";
@@ -274,7 +269,6 @@ public sealed partial class MainWindow : Window
 
         if (!_formViewModel.Validate())
         {
-            // Simple validation feedback
             if (string.IsNullOrWhiteSpace(_formViewModel.Title))
                 FormTitle.Focus(FocusState.Programmatic);
             else if (string.IsNullOrWhiteSpace(_formViewModel.Category))
@@ -282,9 +276,11 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        _formViewModel.Save();
-        CloseSidePanel();
+        var savedId = _formViewModel.Save();
         ViewModel.LoadRecords();
+
+        // Show the saved record's detail in side panel
+        OpenSidePanelDetail(savedId);
     }
 
     // ============================
