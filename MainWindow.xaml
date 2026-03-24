@@ -474,9 +474,9 @@
 
         <!-- ==================== Record Sheet Overlay (Detail / Add / Edit) ==================== -->
         <Grid x:Name="SidePanel" Grid.Row="0" Grid.RowSpan="2" Visibility="Collapsed">
-            <Border Background="#80000000" PointerPressed="SidePanelBackdrop_Click"/>
+            <Border x:Name="SidePanelBackdrop" Background="#80000000" PointerPressed="SidePanelBackdrop_Click"/>
 
-            <Border HorizontalAlignment="Right" Width="460"
+            <Border x:Name="SidePanelSheet" HorizontalAlignment="Right" Width="460"
                     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1,0,0,0">
@@ -740,10 +740,10 @@
         <!-- ==================== Settings Overlay Sheet ==================== -->
         <Grid x:Name="SettingsPanel" Grid.Row="0" Grid.RowSpan="2" Visibility="Collapsed">
             <!-- Dimmed backdrop -->
-            <Border Background="#80000000" PointerPressed="SettingsBackdrop_Click"/>
+            <Border x:Name="SettingsBackdropBorder" Background="#80000000" PointerPressed="SettingsBackdrop_Click"/>
 
             <!-- Sheet -->
-            <Border HorizontalAlignment="Right" Width="500"
+            <Border x:Name="SettingsSheet" HorizontalAlignment="Right" Width="500"
                     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1,0,0,0">

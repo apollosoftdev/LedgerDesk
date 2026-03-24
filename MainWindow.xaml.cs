@@ -1,7 +1,10 @@
+using System.Numerics;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 using LedgerDesk.Models;
 using LedgerDesk.Services;
@@ -304,17 +307,19 @@ public sealed partial class MainWindow : Window
 
     private void ShowSidePanel(string mode)
     {
-        SidePanel.Visibility = Visibility.Visible;
         SidePanelDetail.Visibility = mode == "Detail" ? Visibility.Visible : Visibility.Collapsed;
         SidePanelForm.Visibility = mode == "Form" ? Visibility.Visible : Visibility.Collapsed;
+        ShowSheet(SidePanel);
     }
 
     private void CloseSidePanel()
     {
-        SidePanel.Visibility = Visibility.Collapsed;
-        SidePanelDetail.Visibility = Visibility.Collapsed;
-        SidePanelForm.Visibility = Visibility.Collapsed;
-        ViewModel.SidePanelMode = "None";
+        HideSheet(SidePanel, () =>
+        {
+            SidePanelDetail.Visibility = Visibility.Collapsed;
+            SidePanelForm.Visibility = Visibility.Collapsed;
+            ViewModel.SidePanelMode = "None";
+        });
     }
 
     private void CloseSidePanel_Click(object sender, RoutedEventArgs e) => CloseSidePanel();
@@ -381,7 +386,7 @@ public sealed partial class MainWindow : Window
         // Text customization list
         LoadTextCustomizationList();
 
-        SettingsPanel.Visibility = Visibility.Visible;
+        ShowSheet(SettingsPanel);
     }
 
     // ============================
@@ -399,9 +404,9 @@ public sealed partial class MainWindow : Window
 
     private void FilterText_Changed(object sender, TextChangedEventArgs e)
     {
-        if (sender == FilterTitle)
+        if (ReferenceEquals(sender, FilterTitle))
             _filterViewModel.TitleQuery = FilterTitle.Text;
-        else if (sender == FilterDescription)
+        else if (ReferenceEquals(sender, FilterDescription))
             _filterViewModel.DescriptionQuery = FilterDescription.Text;
     }
 
@@ -550,7 +555,7 @@ public sealed partial class MainWindow : Window
 
     private void BalanceType_Click(object sender, RoutedEventArgs e)
     {
-        if (sender == FormIncomeToggle)
+        if (ReferenceEquals(sender, FormIncomeToggle))
         {
             FormIncomeToggle.IsChecked = true;
             FormExpenseToggle.IsChecked = false;
@@ -698,9 +703,11 @@ public sealed partial class MainWindow : Window
 
     private void CloseSettings()
     {
-        SettingsPanel.Visibility = Visibility.Collapsed;
-        PopulateFilterCategories();
-        ViewModel.LoadRecords();
+        HideSheet(SettingsPanel, () =>
+        {
+            PopulateFilterCategories();
+            ViewModel.LoadRecords();
+        });
     }
 
     private void ChangePassword_Click(object sender, RoutedEventArgs e)
@@ -1047,6 +1054,102 @@ public sealed partial class MainWindow : Window
         SettingsClearRecordsBtn.Content = l.Get("settings.clear_records");
         SettingsResetAppBtn.Content = l.Get("settings.reset_app");
         ForgotPasswordLink.Content = l.Get("settings.forgot_password_link");
+    }
+
+    // ============================
+    //  Sheet Animations
+    // ============================
+
+    private const float SlideOffset = 100f;
+    private static readonly TimeSpan AnimDuration = TimeSpan.FromMilliseconds(250);
+
+    private void ShowSheet(Grid panel)
+    {
+        panel.Visibility = Visibility.Visible;
+
+        // Find backdrop and sheet children
+        var backdrop = panel.Children[0] as FrameworkElement;
+        var sheet = panel.Children[1] as FrameworkElement;
+        if (backdrop is null || sheet is null) return;
+
+        var compositor = ElementCompositionPreview.GetElementVisual(sheet).Compositor;
+
+        // Backdrop fade in
+        var backdropVisual = ElementCompositionPreview.GetElementVisual(backdrop);
+        backdropVisual.Opacity = 0f;
+        var fadeIn = compositor.CreateScalarKeyFrameAnimation();
+        fadeIn.InsertKeyFrame(1f, 1f, compositor.CreateCubicBezierEasingFunction(new Vector2(0.1f, 0.9f), new Vector2(0.2f, 1f)));
+        fadeIn.Duration = AnimDuration;
+        backdropVisual.StartAnimation("Opacity", fadeIn);
+
+        // Sheet slide in from right + fade
+        var sheetVisual = ElementCompositionPreview.GetElementVisual(sheet);
+        sheetVisual.Opacity = 0f;
+
+        var slideIn = compositor.CreateVector3KeyFrameAnimation();
+        slideIn.InsertKeyFrame(0f, new Vector3(SlideOffset, 0, 0));
+        slideIn.InsertKeyFrame(1f, Vector3.Zero, compositor.CreateCubicBezierEasingFunction(new Vector2(0.1f, 0.9f), new Vector2(0.2f, 1f)));
+        slideIn.Duration = AnimDuration;
+
+        var sheetFadeIn = compositor.CreateScalarKeyFrameAnimation();
+        sheetFadeIn.InsertKeyFrame(1f, 1f);
+        sheetFadeIn.Duration = AnimDuration;
+
+        sheetVisual.StartAnimation("Offset", slideIn);
+        sheetVisual.StartAnimation("Opacity", sheetFadeIn);
+    }
+
+    private void HideSheet(Grid panel, Action? onComplete = null)
+    {
+        var backdrop = panel.Children[0] as FrameworkElement;
+        var sheet = panel.Children[1] as FrameworkElement;
+        if (backdrop is null || sheet is null)
+        {
+            panel.Visibility = Visibility.Collapsed;
+            onComplete?.Invoke();
+            return;
+        }
+
+        var compositor = ElementCompositionPreview.GetElementVisual(sheet).Compositor;
+
+        // Backdrop fade out
+        var backdropVisual = ElementCompositionPreview.GetElementVisual(backdrop);
+        var fadeOut = compositor.CreateScalarKeyFrameAnimation();
+        fadeOut.InsertKeyFrame(1f, 0f);
+        fadeOut.Duration = AnimDuration;
+        backdropVisual.StartAnimation("Opacity", fadeOut);
+
+        // Sheet slide out to right + fade
+        var sheetVisual = ElementCompositionPreview.GetElementVisual(sheet);
+
+        var slideOut = compositor.CreateVector3KeyFrameAnimation();
+        slideOut.InsertKeyFrame(1f, new Vector3(SlideOffset, 0, 0), compositor.CreateCubicBezierEasingFunction(new Vector2(0.8f, 0f), new Vector2(0.9f, 0.1f)));
+        slideOut.Duration = AnimDuration;
+
+        var sheetFadeOut = compositor.CreateScalarKeyFrameAnimation();
+        sheetFadeOut.InsertKeyFrame(1f, 0f);
+        sheetFadeOut.Duration = AnimDuration;
+
+        sheetVisual.StartAnimation("Offset", slideOut);
+        sheetVisual.StartAnimation("Opacity", sheetFadeOut);
+
+        // Collapse after animation completes
+        var batch = compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+        batch.Completed += (_, _) =>
+        {
+            panel.Visibility = Visibility.Collapsed;
+            // Reset transforms
+            sheetVisual.Offset = Vector3.Zero;
+            sheetVisual.Opacity = 1f;
+            backdropVisual.Opacity = 1f;
+            onComplete?.Invoke();
+        };
+        // Need to start at least one animation inside the batch scope for Completed to fire
+        var dummy = compositor.CreateScalarKeyFrameAnimation();
+        dummy.InsertKeyFrame(1f, 0f);
+        dummy.Duration = AnimDuration;
+        backdropVisual.StartAnimation("Opacity", dummy);
+        batch.End();
     }
 }
 
