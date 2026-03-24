@@ -288,7 +288,7 @@
                                         <Grid Grid.Column="0" Width="40" Height="40" CornerRadius="6"
                                               Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                                               VerticalAlignment="Center">
-                                            <FontIcon Glyph="&#xE946;" FontSize="16"
+                                            <FontIcon Glyph="&#xE91B;" FontSize="16"
                                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                                       Visibility="{Binding HasImages, Converter={StaticResource BoolToCollapsed}}"/>
                                             <Image Source="{Binding FirstImageSource}" Stretch="UniformToFill"
@@ -519,7 +519,7 @@
                                 <Border x:Name="DetailNoImage" Height="120" CornerRadius="10"
                                         Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                                         Visibility="Collapsed">
-                                    <FontIcon Glyph="&#xE946;" FontSize="36"
+                                    <FontIcon Glyph="&#xE91B;" FontSize="36"
                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
