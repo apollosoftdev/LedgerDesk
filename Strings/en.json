@@ -6,6 +6,7 @@
   "activation.mac_label": "Serial Number",
   "activation.key_header": "License Key",
   "activation.key_placeholder": "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
+  "activation.challenge_label": "Code",
   "activation.button": "Activate",
   "activation.error_empty": "Please enter a license key.",
   "activation.error_invalid": "Invalid license key. Please check and try again.",

@@ -9,7 +9,7 @@ namespace LedgerDesk.KeyGen;
 
 public sealed partial class MainWindow : Window
 {
-    // Must match LicenseService salts in the main app
+    // Must match LicenseService.Salt in the main app
     private const string Salt = "LedgerDesk-2026-License-Salt";
 
     public MainWindow()
@@ -20,12 +20,13 @@ public sealed partial class MainWindow : Window
         var hwnd = WindowNative.GetWindowHandle(this);
         var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
-        appWindow.Resize(new Windows.Graphics.SizeInt32(520, 800));
+        appWindow.Resize(new Windows.Graphics.SizeInt32(520, 520));
     }
 
     private void Generate_Click(object sender, RoutedEventArgs e)
     {
         var sn = SnInput.Text?.Trim() ?? "";
+        var challenge = ChallengeInput.Text?.Trim() ?? "";
 
         if (string.IsNullOrEmpty(sn))
         {
@@ -33,16 +34,20 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        // Clean SN: remove dashes/spaces, validate hex
-        var clean = sn.ToUpperInvariant().Replace("-", "").Replace(" ", "");
-
-        if (clean.Length != 16 || !clean.All(c => "0123456789ABCDEF".Contains(c)))
+        var cleanSn = sn.ToUpperInvariant().Replace("-", "").Replace(" ", "");
+        if (cleanSn.Length != 16 || !cleanSn.All(c => "0123456789ABCDEF".Contains(c)))
         {
             ShowError("Invalid serial number. Expected format: XXXX-XXXX-XXXX-XXXX (16 hex characters).");
             return;
         }
 
-        var key = GenerateKey(clean);
+        if (string.IsNullOrEmpty(challenge) || challenge.Length != 4 || !challenge.All(char.IsDigit))
+        {
+            ShowError("Please enter a valid 4-digit code.");
+            return;
+        }
+
+        var key = GenerateKey(cleanSn, challenge);
         ResultKey.Text = key;
         ResultPanel.Visibility = Visibility.Visible;
         ErrorText.Visibility = Visibility.Collapsed;
@@ -62,12 +67,13 @@ public sealed partial class MainWindow : Window
         ResultPanel.Visibility = Visibility.Collapsed;
     }
 
-    private static string GenerateKey(string serialNumber)
+    private static string GenerateKey(string serialNumber, string challenge)
     {
+        var input = serialNumber + ":" + challenge;
         var keyBytes = Encoding.UTF8.GetBytes(Salt);
-        var snBytes = Encoding.UTF8.GetBytes(serialNumber);
+        var inputBytes = Encoding.UTF8.GetBytes(input);
 
-        var hmac = HMACSHA256.HashData(keyBytes, snBytes);
+        var hmac = HMACSHA256.HashData(keyBytes, inputBytes);
 
         var sb = new StringBuilder();
         for (int i = 0; i < 25; i++)

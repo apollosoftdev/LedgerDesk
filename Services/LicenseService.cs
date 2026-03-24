@@ -41,7 +41,6 @@ public class LicenseService
 
     /// <summary>
     /// Generates a 4x4 serial number from the MAC address (e.g. A1B2-C3D4-E5F6-7890).
-    /// This is the device identifier shown to the user.
     /// </summary>
     public static string GenerateSerialNumber(string macAddress)
     {
@@ -51,7 +50,6 @@ public class LicenseService
 
         var hash = HMACSHA256.HashData(keyBytes, macBytes);
 
-        // Take 8 bytes → 16 hex chars → 4 groups of 4
         var sb = new StringBuilder();
         for (int i = 0; i < 8; i++)
         {
@@ -60,7 +58,7 @@ public class LicenseService
                 sb.Append('-');
         }
 
-        return sb.ToString(); // e.g. A1B2-C3D4-E5F6-7890
+        return sb.ToString();
     }
 
     public string GetSerialNumber()
@@ -69,15 +67,36 @@ public class LicenseService
     }
 
     /// <summary>
-    /// Generates a license key from a serial number. Format: 5 groups of 5 digits.
+    /// Generates a new random 4-digit challenge code and stores it.
     /// </summary>
-    public static string GenerateKey(string serialNumber)
+    public string GenerateChallenge()
     {
-        var sn = serialNumber.ToUpperInvariant().Replace("-", "");
-        var keyBytes = Encoding.UTF8.GetBytes(Salt);
-        var snBytes = Encoding.UTF8.GetBytes(sn);
+        var code = RandomNumberGenerator.GetInt32(1000, 10000).ToString();
+        _db.SetSetting("license_challenge", code);
+        return code;
+    }
 
-        var hmac = HMACSHA256.HashData(keyBytes, snBytes);
+    /// <summary>
+    /// Gets the current stored challenge code, or generates a new one.
+    /// </summary>
+    public string GetOrCreateChallenge()
+    {
+        var existing = _db.GetSetting("license_challenge");
+        if (!string.IsNullOrEmpty(existing)) return existing;
+        return GenerateChallenge();
+    }
+
+    /// <summary>
+    /// Generates a license key from SN + challenge. Format: 5 groups of 5 digits.
+    /// Each challenge produces a different key for the same SN.
+    /// </summary>
+    public static string GenerateKey(string serialNumber, string challenge)
+    {
+        var input = serialNumber.ToUpperInvariant().Replace("-", "") + ":" + challenge;
+        var keyBytes = Encoding.UTF8.GetBytes(Salt);
+        var inputBytes = Encoding.UTF8.GetBytes(input);
+
+        var hmac = HMACSHA256.HashData(keyBytes, inputBytes);
 
         var sb = new StringBuilder();
         for (int i = 0; i < 25; i++)
@@ -93,7 +112,8 @@ public class LicenseService
     public bool ValidateKey(string inputKey)
     {
         var sn = GetSerialNumber();
-        var expected = GenerateKey(sn);
+        var challenge = GetOrCreateChallenge();
+        var expected = GenerateKey(sn, challenge);
         return string.Equals(inputKey.Trim(), expected, StringComparison.Ordinal);
     }
 
@@ -103,7 +123,8 @@ public class LicenseService
         if (string.IsNullOrEmpty(storedKey)) return false;
 
         var sn = GetSerialNumber();
-        var expected = GenerateKey(sn);
+        var challenge = _db.GetSetting("license_challenge") ?? "";
+        var expected = GenerateKey(sn, challenge);
         return string.Equals(storedKey, expected, StringComparison.Ordinal);
     }
 
@@ -117,5 +138,6 @@ public class LicenseService
     public void Deactivate()
     {
         _db.DeleteSetting("license_key");
+        _db.DeleteSetting("license_challenge");
     }
 }

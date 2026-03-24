@@ -95,7 +95,9 @@ public sealed partial class MainWindow : Window
         var l = App.Localization;
         if (!App.License.IsActivated())
         {
+            _activationViewModel.RefreshChallenge();
             ActivationMacAddress.Text = _activationViewModel.SerialNumber;
+            ActivationChallenge.Text = _activationViewModel.Challenge;
             ShowPanel("Activation");
         }
         else if (!App.Auth.IsPasswordSet())
@@ -166,15 +168,28 @@ public sealed partial class MainWindow : Window
     private async void ForgotPassword_Click(object sender, RoutedEventArgs e)
     {
         var l = App.Localization;
+        var sn = App.License.GetSerialNumber();
+        var challenge = App.License.GetOrCreateChallenge();
+
+        var panel = new StackPanel { Spacing = 12 };
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"{l.Get("activation.mac_label")}: {sn}    {l.Get("activation.challenge_label")}: {challenge}",
+            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Cascadia Code,Consolas,Courier New"),
+            FontSize = 13,
+            IsTextSelectionEnabled = true,
+        });
         var keyBox = new TextBox
         {
             PlaceholderText = l.Get("activation.key_placeholder"),
             FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Cascadia Code,Consolas,Courier New"),
         };
+        panel.Children.Add(keyBox);
+
         var dialog = new ContentDialog
         {
             Title = l.Get("settings.forgot_password_title"),
-            Content = keyBox,
+            Content = panel,
             PrimaryButtonText = l.Get("settings.forgot_password_button"),
             CloseButtonText = l.Get("common.cancel"),
             DefaultButton = ContentDialogButton.Close,
@@ -185,7 +200,6 @@ public sealed partial class MainWindow : Window
         {
             if (_settingsViewModel.ForgotPassword(keyBox.Text?.Trim() ?? ""))
             {
-                // Password cleared — show set password screen
                 _loginViewModel = new LoginViewModel(App.Auth);
                 DetermineStartupScreen();
             }
@@ -940,6 +954,7 @@ public sealed partial class MainWindow : Window
         ActivationMacLabel.Text = l.Get("activation.mac_label");
         ActivationKeyInput.Header = l.Get("activation.key_header");
         ActivationKeyInput.PlaceholderText = l.Get("activation.key_placeholder");
+        ActivationChallengeLabel.Text = l.Get("activation.challenge_label");
         ActivateButton.Content = l.Get("activation.button");
 
         // Login panel

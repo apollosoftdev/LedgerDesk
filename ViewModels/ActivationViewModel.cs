@@ -7,6 +7,7 @@ public class ActivationViewModel : BaseViewModel
     private readonly LicenseService _licenseService;
 
     private string _serialNumber = string.Empty;
+    private string _challenge = string.Empty;
     private string _licenseKey = string.Empty;
     private string _errorMessage = string.Empty;
     private bool _hasError;
@@ -15,6 +16,12 @@ public class ActivationViewModel : BaseViewModel
     {
         get => _serialNumber;
         set => SetProperty(ref _serialNumber, value);
+    }
+
+    public string Challenge
+    {
+        get => _challenge;
+        set => SetProperty(ref _challenge, value);
     }
 
     public string LicenseKey
@@ -43,6 +50,12 @@ public class ActivationViewModel : BaseViewModel
     {
         _licenseService = licenseService;
         SerialNumber = _licenseService.GetSerialNumber();
+        Challenge = _licenseService.GetOrCreateChallenge();
+    }
+
+    public void RefreshChallenge()
+    {
+        Challenge = _licenseService.GenerateChallenge();
     }
 
     public bool TryActivate()

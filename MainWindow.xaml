@@ -381,17 +381,31 @@
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- MAC Address -->
+                <!-- Serial Number + Challenge -->
                 <Border CornerRadius="8" Padding="16"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
-                    <StackPanel Spacing="4">
-                        <TextBlock x:Name="ActivationMacLabel" Text="Device ID (MAC Address)" FontSize="12"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                        <TextBlock x:Name="ActivationMacAddress"
-                                   FontSize="16" FontFamily="Cascadia Code,Consolas,Courier New"
-                                   IsTextSelectionEnabled="True"/>
-                    </StackPanel>
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock x:Name="ActivationMacLabel" Text="Serial Number" FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            <TextBlock x:Name="ActivationMacAddress"
+                                       FontSize="16" FontFamily="Cascadia Code,Consolas,Courier New"
+                                       IsTextSelectionEnabled="True"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock x:Name="ActivationChallengeLabel" Text="Code" FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            <TextBlock x:Name="ActivationChallenge"
+                                       FontSize="16" FontWeight="Bold"
+                                       FontFamily="Cascadia Code,Consolas,Courier New"
+                                       IsTextSelectionEnabled="True"/>
+                        </StackPanel>
+                    </Grid>
                 </Border>
 
                 <!-- License Key Input -->

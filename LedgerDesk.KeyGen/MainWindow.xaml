@@ -15,17 +15,26 @@
                           HorizontalAlignment="Center"/>
                 <TextBlock Text="LedgerDesk Key Generator" FontSize="22" FontWeight="SemiBold"
                            HorizontalAlignment="Center"/>
-                <TextBlock Text="Generate license keys from device serial numbers"
+                <TextBlock Text="Generate license keys from device serial number and code"
                            FontSize="13"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                            HorizontalAlignment="Center"/>
             </StackPanel>
 
-            <!-- Serial Number Input -->
-            <TextBox x:Name="SnInput" Header="Serial Number"
-                     PlaceholderText="e.g. A1B2-C3D4-E5F6-7890"
-                     FontFamily="Cascadia Code,Consolas,Courier New"
-                     HorizontalAlignment="Stretch"/>
+            <!-- Serial Number + Challenge Input -->
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="SnInput" Grid.Column="0" Header="Serial Number"
+                         PlaceholderText="e.g. A1B2-C3D4-E5F6-7890"
+                         FontFamily="Cascadia Code,Consolas,Courier New"/>
+                <TextBox x:Name="ChallengeInput" Grid.Column="1" Header="Code"
+                         PlaceholderText="e.g. 1234"
+                         FontFamily="Cascadia Code,Consolas,Courier New"
+                         MaxLength="4"/>
+            </Grid>
 
             <!-- Generate Button -->
             <Button Content="Generate Key" Style="{StaticResource AccentButtonStyle}"
