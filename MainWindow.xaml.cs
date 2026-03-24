@@ -414,16 +414,8 @@ public sealed partial class MainWindow : Window
             FilterPaymentType.SelectedIndex = 0;
         }
 
-        // Sort options
-        if (FilterSort.Items.Count == 0)
-        {
-            FilterSort.Items.Add(new ComboBoxItem { Content = l.Get("table.date"), Tag = "date" });
-            FilterSort.Items.Add(new ComboBoxItem { Content = l.Get("table.title"), Tag = "title" });
-            FilterSort.Items.Add(new ComboBoxItem { Content = l.Get("table.amount"), Tag = "amount" });
-            FilterSort.Items.Add(new ComboBoxItem { Content = l.Get("table.category"), Tag = "category" });
-            FilterSort.Items.Add(new ComboBoxItem { Content = l.Get("payment.type_label"), Tag = "type" });
-            FilterSort.SelectedIndex = 0;
-        }
+        // Default sort indicator
+        UpdateSortIndicators();
     }
 
     private void FilterText_Changed(object sender, TextChangedEventArgs e)
@@ -448,18 +440,6 @@ public sealed partial class MainWindow : Window
             _filterViewModel.SelectedPaymentType = null;
         else
             _filterViewModel.SelectedPaymentType = FilterPaymentType.SelectedIndex - 1; // 1=Income(0), 2=Expense(1)
-    }
-
-    private void FilterSort_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (FilterSort.SelectedItem is not ComboBoxItem item) return;
-        _filterViewModel.SortBy = item.Tag?.ToString() ?? "date";
-    }
-
-    private void FilterSortDirection_Click(object sender, RoutedEventArgs e)
-    {
-        _filterViewModel.SortDescending = !_filterViewModel.SortDescending;
-        FilterSortIcon.Glyph = _filterViewModel.SortDescending ? "\uE74B" : "\uE74A";
     }
 
     private void FilterAmount_Changed(NumberBox sender, NumberBoxValueChangedEventArgs args)
@@ -517,6 +497,39 @@ public sealed partial class MainWindow : Window
     private void PrevPage_Click(object sender, RoutedEventArgs e) => ViewModel.PrevPageCommand.Execute(null);
     private void NextPage_Click(object sender, RoutedEventArgs e) => ViewModel.NextPageCommand.Execute(null);
     private void LastPage_Click(object sender, RoutedEventArgs e) => ViewModel.LastPageCommand.Execute(null);
+
+    // ============================
+    //  Column Header Sorting
+    // ============================
+
+    private void ColumnHeader_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn || btn.Tag is not string column) return;
+
+        if (_filterViewModel.SortBy == column)
+            _filterViewModel.SortDescending = !_filterViewModel.SortDescending;
+        else
+        {
+            _filterViewModel.SortBy = column;
+            _filterViewModel.SortDescending = column == "date"; // date defaults desc, others asc
+        }
+
+        UpdateSortIndicators();
+        ApplyCurrentFilter();
+    }
+
+    private void UpdateSortIndicators()
+    {
+        var sortBy = _filterViewModel.SortBy;
+        var desc = _filterViewModel.SortDescending;
+        var arrow = desc ? "\uE74B" : "\uE74A"; // down / up
+
+        ColDateSort.Glyph = sortBy == "date" ? arrow : "";
+        ColTypeSort.Glyph = sortBy == "type" ? arrow : "";
+        ColTitleSort.Glyph = sortBy == "title" ? arrow : "";
+        ColCategorySort.Glyph = sortBy == "category" ? arrow : "";
+        ColAmountSort.Glyph = sortBy == "amount" ? arrow : "";
+    }
 
     // ============================
     //  Record List Click → Detail
@@ -1023,11 +1036,11 @@ public sealed partial class MainWindow : Window
         ClearFiltersText.Text = l.Get("filter.clear");
 
         // Table headers
-        ColDate.Text = l.Get("table.date");
-        ColType.Text = l.Get("payment.type_label");
-        ColTitle.Text = l.Get("table.title");
-        ColCategory.Text = l.Get("table.category");
-        ColAmount.Text = l.Get("table.amount");
+        ColDateText.Text = l.Get("table.date");
+        ColTypeText.Text = l.Get("table.payment_type");
+        ColTitleText.Text = l.Get("table.title");
+        ColCategoryText.Text = l.Get("table.category");
+        ColAmountText.Text = l.Get("table.amount");
 
         // Empty state
         EmptyTitle.Text = l.Get("empty.title");

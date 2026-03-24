@@ -243,10 +243,6 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="4"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <NumberBox x:Name="FilterAmountMin" Grid.Column="0"
@@ -265,16 +261,7 @@
                                         PlaceholderText="To date"
                                         DateChanged="FilterDate_Changed"/>
 
-                    <ComboBox x:Name="FilterSort" Grid.Column="8"
-                              Width="130" SelectionChanged="FilterSort_Changed"/>
-
-                    <Button x:Name="FilterSortDirection" Grid.Column="10"
-                            Click="FilterSortDirection_Click" Padding="6,6"
-                            ToolTipService.ToolTip="Toggle sort direction">
-                        <FontIcon x:Name="FilterSortIcon" Glyph="&#xE74B;" FontSize="12"/>
-                    </Button>
-
-                    <Button x:Name="ClearFiltersButton" Grid.Column="12"
+                    <Button x:Name="ClearFiltersButton" Grid.Column="8"
                             Click="ClearFilters_Click"
                             Visibility="Collapsed"
                             ToolTipService.ToolTip="Clear all filters">
@@ -313,23 +300,62 @@
                                     <ColumnDefinition Width="120"/>  <!-- Amount -->
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock x:Name="ColDate" Grid.Column="1" Text="DATE"
-                                           FontSize="12" FontWeight="SemiBold" CharacterSpacing="60"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                <TextBlock x:Name="ColType" Grid.Column="2" Text="TYPE"
-                                           FontSize="12" FontWeight="SemiBold" CharacterSpacing="60"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                <TextBlock x:Name="ColTitle" Grid.Column="3" Text="TITLE"
-                                           FontSize="12" FontWeight="SemiBold" CharacterSpacing="60"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                <TextBlock x:Name="ColCategory" Grid.Column="4" Text="CATEGORY"
-                                           FontSize="12" FontWeight="SemiBold" CharacterSpacing="60"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                <TextBlock x:Name="ColAmount" Grid.Column="5" Text="AMOUNT"
-                                           FontSize="12" FontWeight="SemiBold" CharacterSpacing="60"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                           HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                                <!-- Thumbnail column has no header -->
+                                <Button x:Name="ColDate" Grid.Column="1" Tag="date"
+                                        Click="ColumnHeader_Click" Background="Transparent"
+                                        BorderBrush="Transparent" Padding="0" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock x:Name="ColDateText" Text="DATE"
+                                                   FontSize="12" FontWeight="SemiBold" CharacterSpacing="60"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <FontIcon x:Name="ColDateSort" Glyph="&#xE74B;" FontSize="10"
+                                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="ColType" Grid.Column="2" Tag="type"
+                                        Click="ColumnHeader_Click" Background="Transparent"
+                                        BorderBrush="Transparent" Padding="0" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock x:Name="ColTypeText" Text="TYPE"
+                                                   FontSize="12" FontWeight="SemiBold" CharacterSpacing="60"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <FontIcon x:Name="ColTypeSort" Glyph="" FontSize="10"
+                                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="ColTitle" Grid.Column="3" Tag="title"
+                                        Click="ColumnHeader_Click" Background="Transparent"
+                                        BorderBrush="Transparent" Padding="0" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock x:Name="ColTitleText" Text="TITLE"
+                                                   FontSize="12" FontWeight="SemiBold" CharacterSpacing="60"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <FontIcon x:Name="ColTitleSort" Glyph="" FontSize="10"
+                                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="ColCategory" Grid.Column="4" Tag="category"
+                                        Click="ColumnHeader_Click" Background="Transparent"
+                                        BorderBrush="Transparent" Padding="0" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock x:Name="ColCategoryText" Text="CATEGORY"
+                                                   FontSize="12" FontWeight="SemiBold" CharacterSpacing="60"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <FontIcon x:Name="ColCategorySort" Glyph="" FontSize="10"
+                                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="ColAmount" Grid.Column="5" Tag="amount"
+                                        Click="ColumnHeader_Click" Background="Transparent"
+                                        BorderBrush="Transparent" Padding="0" HorizontalAlignment="Right"
+                                        Margin="0,0,12,0">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock x:Name="ColAmountText" Text="AMOUNT"
+                                                   FontSize="12" FontWeight="SemiBold" CharacterSpacing="60"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <FontIcon x:Name="ColAmountSort" Glyph="" FontSize="10"
+                                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                    </StackPanel>
+                                </Button>
                             </Grid>
                         </Border>
 
