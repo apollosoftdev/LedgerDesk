@@ -13,6 +13,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultXamlItems>true</EnableDefaultXamlItems>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
