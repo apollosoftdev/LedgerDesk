@@ -1,0 +1,435 @@
+using Microsoft.Data.Sqlite;
+using LedgerDesk.Models;
+
+namespace LedgerDesk.Services;
+
+public class DatabaseService
+{
+    private readonly string _connectionString;
+
+    public DatabaseService()
+    {
+        var dbPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "LedgerDesk", "ledgerdesk.db");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
+        _connectionString = $"Data Source={dbPath}";
+        InitializeDatabase();
+    }
+
+    private void InitializeDatabase()
+    {
+        using var conn = Open();
+
+        Execute(conn, "PRAGMA journal_mode=WAL;");
+        Execute(conn, "PRAGMA foreign_keys=ON;");
+
+        Execute(conn, """
+            CREATE TABLE IF NOT EXISTS Categories (
+                Id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name      TEXT    NOT NULL UNIQUE,
+                SortOrder INTEGER NOT NULL DEFAULT 0
+            )
+            """);
+
+        Execute(conn, """
+            CREATE TABLE IF NOT EXISTS Records (
+                Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                Title       TEXT    NOT NULL,
+                Category    TEXT    NOT NULL,
+                Description TEXT    NOT NULL DEFAULT '',
+                Amount      REAL    NOT NULL,
+                Date        TEXT    NOT NULL,
+                CreatedAt   TEXT    NOT NULL,
+                UpdatedAt   TEXT    NOT NULL
+            )
+            """);
+
+        Execute(conn, """
+            CREATE TABLE IF NOT EXISTS RecordImages (
+                Id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                RecordId  INTEGER NOT NULL REFERENCES Records(Id) ON DELETE CASCADE,
+                ImageData BLOB    NOT NULL,
+                SortOrder INTEGER NOT NULL DEFAULT 0
+            )
+            """);
+
+        Execute(conn, """
+            CREATE TABLE IF NOT EXISTS AppSettings (
+                Key   TEXT PRIMARY KEY,
+                Value TEXT NOT NULL
+            )
+            """);
+
+        // Indexes for filter performance
+        Execute(conn, "CREATE INDEX IF NOT EXISTS idx_records_date ON Records(Date)");
+        Execute(conn, "CREATE INDEX IF NOT EXISTS idx_records_category ON Records(Category)");
+
+        // Seed default categories if empty
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM Categories";
+        if ((long)cmd.ExecuteScalar()! == 0)
+        {
+            SeedCategories(conn);
+        }
+    }
+
+    private static void SeedCategories(SqliteConnection conn)
+    {
+        var categories = new[] { "Income", "Expense", "Transfer", "Other" };
+        using var txn = conn.BeginTransaction();
+        for (int i = 0; i < categories.Length; i++)
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "INSERT INTO Categories (Name, SortOrder) VALUES ($name, $order)";
+            cmd.Parameters.AddWithValue("$name", categories[i]);
+            cmd.Parameters.AddWithValue("$order", i);
+            cmd.ExecuteNonQuery();
+        }
+        txn.Commit();
+    }
+
+    // --- Records CRUD ---
+
+    public List<Record> GetAllRecords()
+    {
+        using var conn = Open();
+        return QueryRecords(conn, "SELECT Id, Title, Category, Description, Amount, Date, CreatedAt, UpdatedAt FROM Records ORDER BY Date DESC, Id DESC");
+    }
+
+    public Record? GetRecordById(int id)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT Id, Title, Category, Description, Amount, Date, CreatedAt, UpdatedAt FROM Records WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", id);
+
+        using var rdr = cmd.ExecuteReader();
+        return rdr.Read() ? ReadRecord(rdr) : null;
+    }
+
+    public List<Record> SearchRecords(RecordFilter filter)
+    {
+        using var conn = Open();
+
+        var conditions = new List<string>();
+        var parameters = new List<SqliteParameter>();
+
+        if (!string.IsNullOrWhiteSpace(filter.TitleQuery))
+        {
+            conditions.Add("Title LIKE $title");
+            parameters.Add(new SqliteParameter("$title", $"%{filter.TitleQuery}%"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.CategoryFilter))
+        {
+            conditions.Add("Category = $category");
+            parameters.Add(new SqliteParameter("$category", filter.CategoryFilter));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.DescriptionQuery))
+        {
+            conditions.Add("Description LIKE $desc");
+            parameters.Add(new SqliteParameter("$desc", $"%{filter.DescriptionQuery}%"));
+        }
+
+        if (filter.AmountMin.HasValue)
+        {
+            conditions.Add("Amount >= $amountMin");
+            parameters.Add(new SqliteParameter("$amountMin", (double)filter.AmountMin.Value));
+        }
+
+        if (filter.AmountMax.HasValue)
+        {
+            conditions.Add("Amount <= $amountMax");
+            parameters.Add(new SqliteParameter("$amountMax", (double)filter.AmountMax.Value));
+        }
+
+        if (filter.DateStart.HasValue)
+        {
+            conditions.Add("Date >= $dateStart");
+            parameters.Add(new SqliteParameter("$dateStart", filter.DateStart.Value.ToString("yyyy-MM-dd")));
+        }
+
+        if (filter.DateEnd.HasValue)
+        {
+            conditions.Add("Date <= $dateEnd");
+            parameters.Add(new SqliteParameter("$dateEnd", filter.DateEnd.Value.ToString("yyyy-MM-dd")));
+        }
+
+        var where = conditions.Count > 0 ? " WHERE " + string.Join(" AND ", conditions) : "";
+        var sql = $"SELECT Id, Title, Category, Description, Amount, Date, CreatedAt, UpdatedAt FROM Records{where} ORDER BY Date DESC, Id DESC";
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = sql;
+        foreach (var p in parameters)
+            cmd.Parameters.Add(p);
+
+        var list = new List<Record>();
+        using var rdr = cmd.ExecuteReader();
+        while (rdr.Read())
+        {
+            var record = ReadRecord(rdr);
+            record.HasImages = HasImages(conn, record.Id);
+            list.Add(record);
+        }
+        return list;
+    }
+
+    public int AddRecord(Record record)
+    {
+        using var conn = Open();
+        var now = DateTime.Now.ToString("o");
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO Records (Title, Category, Description, Amount, Date, CreatedAt, UpdatedAt)
+            VALUES ($title, $category, $desc, $amount, $date, $createdAt, $updatedAt);
+            SELECT last_insert_rowid();
+            """;
+        cmd.Parameters.AddWithValue("$title", record.Title);
+        cmd.Parameters.AddWithValue("$category", record.Category);
+        cmd.Parameters.AddWithValue("$desc", record.Description);
+        cmd.Parameters.AddWithValue("$amount", (double)record.Amount);
+        cmd.Parameters.AddWithValue("$date", record.Date.ToString("yyyy-MM-dd"));
+        cmd.Parameters.AddWithValue("$createdAt", now);
+        cmd.Parameters.AddWithValue("$updatedAt", now);
+
+        return Convert.ToInt32(cmd.ExecuteScalar());
+    }
+
+    public void UpdateRecord(Record record)
+    {
+        using var conn = Open();
+        var now = DateTime.Now.ToString("o");
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            UPDATE Records SET Title=$title, Category=$category, Description=$desc,
+                               Amount=$amount, Date=$date, UpdatedAt=$updatedAt
+            WHERE Id=$id
+            """;
+        cmd.Parameters.AddWithValue("$id", record.Id);
+        cmd.Parameters.AddWithValue("$title", record.Title);
+        cmd.Parameters.AddWithValue("$category", record.Category);
+        cmd.Parameters.AddWithValue("$desc", record.Description);
+        cmd.Parameters.AddWithValue("$amount", (double)record.Amount);
+        cmd.Parameters.AddWithValue("$date", record.Date.ToString("yyyy-MM-dd"));
+        cmd.Parameters.AddWithValue("$updatedAt", now);
+        cmd.ExecuteNonQuery();
+    }
+
+    public void DeleteRecord(int id)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM Records WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", id);
+        cmd.ExecuteNonQuery();
+    }
+
+    // --- Record Images ---
+
+    public List<RecordImage> GetImagesForRecord(int recordId)
+    {
+        using var conn = Open();
+        var list = new List<RecordImage>();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT Id, RecordId, ImageData, SortOrder FROM RecordImages WHERE RecordId = $recordId ORDER BY SortOrder";
+        cmd.Parameters.AddWithValue("$recordId", recordId);
+
+        using var rdr = cmd.ExecuteReader();
+        while (rdr.Read())
+        {
+            list.Add(new RecordImage
+            {
+                Id = rdr.GetInt32(0),
+                RecordId = rdr.GetInt32(1),
+                ImageData = (byte[])rdr[2],
+                SortOrder = rdr.GetInt32(3),
+            });
+        }
+        return list;
+    }
+
+    public void AddImage(int recordId, byte[] imageData, int sortOrder)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "INSERT INTO RecordImages (RecordId, ImageData, SortOrder) VALUES ($recordId, $imageData, $sortOrder)";
+        cmd.Parameters.AddWithValue("$recordId", recordId);
+        cmd.Parameters.AddWithValue("$imageData", imageData);
+        cmd.Parameters.AddWithValue("$sortOrder", sortOrder);
+        cmd.ExecuteNonQuery();
+    }
+
+    public void DeleteImage(int imageId)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM RecordImages WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", imageId);
+        cmd.ExecuteNonQuery();
+    }
+
+    public void DeleteImagesForRecord(int recordId)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM RecordImages WHERE RecordId = $recordId";
+        cmd.Parameters.AddWithValue("$recordId", recordId);
+        cmd.ExecuteNonQuery();
+    }
+
+    // --- Categories ---
+
+    public List<Category> GetAllCategories()
+    {
+        using var conn = Open();
+        var list = new List<Category>();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT Id, Name, SortOrder FROM Categories ORDER BY SortOrder";
+
+        using var rdr = cmd.ExecuteReader();
+        while (rdr.Read())
+        {
+            list.Add(new Category
+            {
+                Id = rdr.GetInt32(0),
+                Name = rdr.GetString(1),
+                SortOrder = rdr.GetInt32(2),
+            });
+        }
+        return list;
+    }
+
+    public void AddCategory(string name, int sortOrder)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "INSERT INTO Categories (Name, SortOrder) VALUES ($name, $order)";
+        cmd.Parameters.AddWithValue("$name", name);
+        cmd.Parameters.AddWithValue("$order", sortOrder);
+        cmd.ExecuteNonQuery();
+    }
+
+    public void RenameCategory(int id, string newName)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "UPDATE Categories SET Name = $name WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", id);
+        cmd.Parameters.AddWithValue("$name", newName);
+        cmd.ExecuteNonQuery();
+    }
+
+    public void DeleteCategory(int id)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM Categories WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", id);
+        cmd.ExecuteNonQuery();
+    }
+
+    public void ReassignCategory(string oldCategory, string newCategory)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "UPDATE Records SET Category = $newCat WHERE Category = $oldCat";
+        cmd.Parameters.AddWithValue("$oldCat", oldCategory);
+        cmd.Parameters.AddWithValue("$newCat", newCategory);
+        cmd.ExecuteNonQuery();
+    }
+
+    // --- AppSettings ---
+
+    public string? GetSetting(string key)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT Value FROM AppSettings WHERE Key = $key";
+        cmd.Parameters.AddWithValue("$key", key);
+        return cmd.ExecuteScalar() as string;
+    }
+
+    public void SetSetting(string key, string value)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO AppSettings (Key, Value) VALUES ($key, $value)
+            ON CONFLICT(Key) DO UPDATE SET Value = $value
+            """;
+        cmd.Parameters.AddWithValue("$key", key);
+        cmd.Parameters.AddWithValue("$value", value);
+        cmd.ExecuteNonQuery();
+    }
+
+    public void DeleteSetting(string key)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM AppSettings WHERE Key = $key";
+        cmd.Parameters.AddWithValue("$key", key);
+        cmd.ExecuteNonQuery();
+    }
+
+    // --- Helpers ---
+
+    private SqliteConnection Open()
+    {
+        var conn = new SqliteConnection(_connectionString);
+        conn.Open();
+        return conn;
+    }
+
+    private static void Execute(SqliteConnection conn, string sql)
+    {
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.ExecuteNonQuery();
+    }
+
+    private static Record ReadRecord(SqliteDataReader rdr)
+    {
+        return new Record
+        {
+            Id = rdr.GetInt32(0),
+            Title = rdr.GetString(1),
+            Category = rdr.GetString(2),
+            Description = rdr.GetString(3),
+            Amount = (decimal)rdr.GetDouble(4),
+            Date = DateTime.Parse(rdr.GetString(5)),
+            CreatedAt = DateTime.Parse(rdr.GetString(6)),
+            UpdatedAt = DateTime.Parse(rdr.GetString(7)),
+        };
+    }
+
+    private static List<Record> QueryRecords(SqliteConnection conn, string sql)
+    {
+        var list = new List<Record>();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = sql;
+
+        using var rdr = cmd.ExecuteReader();
+        while (rdr.Read())
+        {
+            var record = ReadRecord(rdr);
+            record.HasImages = HasImages(conn, record.Id);
+            list.Add(record);
+        }
+        return list;
+    }
+
+    private static bool HasImages(SqliteConnection conn, int recordId)
+    {
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM RecordImages WHERE RecordId = $id";
+        cmd.Parameters.AddWithValue("$id", recordId);
+        return (long)cmd.ExecuteScalar()! > 0;
+    }
+}
