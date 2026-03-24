@@ -558,7 +558,92 @@
             </Grid>
         </Grid>
 
-        <!-- DetailPanel removed — detail now shown in side panel -->
+        <!-- ==================== Activation Panel ==================== -->
+        <Grid x:Name="ActivationPanel" Grid.Row="1" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                        MaxWidth="420" Spacing="20">
+                <!-- Icon + Title -->
+                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                    <FontIcon Glyph="&#xE72E;" FontSize="48"
+                              Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                              HorizontalAlignment="Center"/>
+                    <TextBlock Text="License Activation" FontSize="24" FontWeight="SemiBold"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Enter your license key to activate LedgerDesk"
+                               FontSize="13"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- MAC Address -->
+                <Border CornerRadius="8" Padding="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Device ID (MAC Address)" FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock x:Name="ActivationMacAddress"
+                                   FontSize="16" FontFamily="Cascadia Code,Consolas,Courier New"
+                                   IsTextSelectionEnabled="True"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- License Key Input -->
+                <TextBox x:Name="ActivationKeyInput" Header="License Key"
+                         PlaceholderText="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+                         FontFamily="Cascadia Code,Consolas,Courier New"
+                         MaxLength="29" HorizontalAlignment="Stretch"/>
+
+                <!-- Error Message -->
+                <TextBlock x:Name="ActivationError" Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                           FontSize="13" Visibility="Collapsed"
+                           HorizontalAlignment="Center"/>
+
+                <!-- Activate Button -->
+                <Button Content="Activate" Style="{StaticResource AccentButtonStyle}"
+                        HorizontalAlignment="Stretch" Click="Activate_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- ==================== Login Panel ==================== -->
+        <Grid x:Name="LoginPanel" Grid.Row="1" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                        MaxWidth="360" Spacing="20">
+                <!-- Icon + Title -->
+                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                    <FontIcon Glyph="&#xE77B;" FontSize="48"
+                              Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                              HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="LoginTitle" Text="Welcome Back" FontSize="24" FontWeight="SemiBold"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="LoginSubtitle" Text="Enter your password to continue"
+                               FontSize="13"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Password -->
+                <PasswordBox x:Name="LoginPassword" Header="Password"
+                             PlaceholderText="Enter password"
+                             KeyDown="LoginPassword_KeyDown"/>
+
+                <!-- Confirm Password (first run only) -->
+                <PasswordBox x:Name="LoginConfirmPassword" Header="Confirm Password"
+                             PlaceholderText="Re-enter password"
+                             Visibility="Collapsed"
+                             KeyDown="LoginPassword_KeyDown"/>
+
+                <!-- Error Message -->
+                <TextBlock x:Name="LoginError" Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                           FontSize="13" Visibility="Collapsed"
+                           HorizontalAlignment="Center"/>
+
+                <!-- Login Button -->
+                <Button x:Name="LoginButton" Content="Login"
+                        Style="{StaticResource AccentButtonStyle}"
+                        HorizontalAlignment="Stretch" Click="Login_Click"/>
+            </StackPanel>
+        </Grid>
 
         <!-- ==================== Settings Panel (Phase 6) ==================== -->
         <Grid x:Name="SettingsPanel" Grid.Row="1" Visibility="Collapsed" Padding="32,16,32,24">

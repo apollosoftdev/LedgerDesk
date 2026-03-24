@@ -19,6 +19,8 @@ public sealed partial class MainWindow : Window
     private readonly RecordFormViewModel _formViewModel;
     private readonly RecordDetailViewModel _detailViewModel;
     private readonly FilterViewModel _filterViewModel;
+    private readonly ActivationViewModel _activationViewModel;
+    private LoginViewModel _loginViewModel;
 
     public MainWindow()
     {
@@ -27,6 +29,8 @@ public sealed partial class MainWindow : Window
         _formViewModel = new RecordFormViewModel(App.Database);
         _detailViewModel = new RecordDetailViewModel(App.Database);
         _filterViewModel = new FilterViewModel();
+        _activationViewModel = new ActivationViewModel(App.License);
+        _loginViewModel = new LoginViewModel(App.Auth);
 
         _filterViewModel.FilterChanged += OnFilterChanged;
 
@@ -38,8 +42,8 @@ public sealed partial class MainWindow : Window
         SetupTitleBar();
         TrySetMicaBackdrop();
 
-        PopulateFilterCategories();
-        ViewModel.LoadRecords();
+        // Startup flow: license → login → main
+        DetermineStartupScreen();
     }
 
     // ============================
@@ -74,9 +78,97 @@ public sealed partial class MainWindow : Window
 
     private void ShowPanel(string panel)
     {
+        ActivationPanel.Visibility = panel == "Activation" ? Visibility.Visible : Visibility.Collapsed;
+        LoginPanel.Visibility = panel == "Login" ? Visibility.Visible : Visibility.Collapsed;
         MainPanel.Visibility = panel == "Main" ? Visibility.Visible : Visibility.Collapsed;
         SettingsPanel.Visibility = panel == "Settings" ? Visibility.Visible : Visibility.Collapsed;
         _mainViewModel.NavigateTo(panel);
+    }
+
+    private void DetermineStartupScreen()
+    {
+        if (!App.License.IsActivated())
+        {
+            ActivationMacAddress.Text = _activationViewModel.MacAddress;
+            ShowPanel("Activation");
+        }
+        else if (!App.Auth.IsPasswordSet())
+        {
+            LoginTitle.Text = "Set Password";
+            LoginSubtitle.Text = "Create a password to protect your data";
+            LoginButton.Content = "Set Password";
+            LoginConfirmPassword.Visibility = Visibility.Visible;
+            ShowPanel("Login");
+        }
+        else
+        {
+            LoginTitle.Text = "Welcome Back";
+            LoginSubtitle.Text = "Enter your password to continue";
+            LoginButton.Content = "Login";
+            LoginConfirmPassword.Visibility = Visibility.Collapsed;
+            ShowPanel("Login");
+        }
+    }
+
+    private void EnterMainApp()
+    {
+        PopulateFilterCategories();
+        ViewModel.LoadRecords();
+        ShowPanel("Main");
+    }
+
+    // ============================
+    //  Activation
+    // ============================
+
+    private void Activate_Click(object sender, RoutedEventArgs e)
+    {
+        _activationViewModel.LicenseKey = ActivationKeyInput.Text?.Trim() ?? "";
+
+        if (_activationViewModel.TryActivate())
+        {
+            // Move to login/set-password
+            _loginViewModel = new LoginViewModel(App.Auth);
+            DetermineStartupScreen();
+        }
+        else
+        {
+            ActivationError.Text = _activationViewModel.ErrorMessage;
+            ActivationError.Visibility = Visibility.Visible;
+        }
+    }
+
+    // ============================
+    //  Login
+    // ============================
+
+    private void Login_Click(object sender, RoutedEventArgs e)
+    {
+        PerformLogin();
+    }
+
+    private void LoginPassword_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter)
+            PerformLogin();
+    }
+
+    private void PerformLogin()
+    {
+        _loginViewModel.Password = LoginPassword.Password;
+        _loginViewModel.ConfirmPassword = LoginConfirmPassword.Password;
+
+        if (_loginViewModel.TryLogin())
+        {
+            LoginPassword.Password = "";
+            LoginConfirmPassword.Password = "";
+            EnterMainApp();
+        }
+        else
+        {
+            LoginError.Text = _loginViewModel.ErrorMessage;
+            LoginError.Visibility = Visibility.Visible;
+        }
     }
 
     // ============================

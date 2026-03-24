@@ -9,6 +9,8 @@ public partial class App : Application
 
     public static DatabaseService Database { get; private set; } = null!;
     public static SettingsService Settings { get; private set; } = null!;
+    public static LicenseService License { get; private set; } = null!;
+    public static AuthService Auth { get; private set; } = null!;
 
     public App()
     {
@@ -18,6 +20,8 @@ public partial class App : Application
     {
         Database = new DatabaseService();
         Settings = new SettingsService(Database);
+        License = new LicenseService(Database);
+        Auth = new AuthService(Database);
 
         _window = new MainWindow();
         _window.Activate();
