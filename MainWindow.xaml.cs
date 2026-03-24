@@ -6,8 +6,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using ProductListApp.Data;
-using ProductListApp.Models;
+using LedgerDesk.Data;
+using LedgerDesk.Models;
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using Windows.ApplicationModel.DataTransfer;
@@ -18,7 +18,7 @@ using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using WinRT.Interop;
 
-namespace ProductListApp;
+namespace LedgerDesk;
 
 public sealed partial class MainWindow : Window
 {

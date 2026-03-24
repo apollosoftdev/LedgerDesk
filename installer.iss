@@ -1,20 +1,20 @@
-; Inno Setup Script for Product Manager
+; Inno Setup Script for LedgerDesk
 ; Download Inno Setup from https://jrsoftware.org/isinfo.php
 
-#define MyAppName "Product Manager"
+#define MyAppName "LedgerDesk"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "ProductListApp"
-#define MyAppExeName "ProductListApp.exe"
+#define MyAppPublisher "LedgerDesk"
+#define MyAppExeName "LedgerDesk.exe"
 
 [Setup]
 AppId={{B3F8A2D1-7C4E-4A9B-9D6F-1E2A3B4C5D6E}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\ProductManager
+DefaultDirName={autopf}\LedgerDesk
 DefaultGroupName={#MyAppName}
 OutputDir=installer_output
-OutputBaseFilename=ProductManagerSetup
+OutputBaseFilename=LedgerDeskSetup
 SetupIconFile=Assets\app.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2
@@ -41,4 +41,4 @@ Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilen
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-Type: filesandordirs; Name: "{localappdata}\ProductListApp"
+Type: filesandordirs; Name: "{localappdata}\LedgerDesk"

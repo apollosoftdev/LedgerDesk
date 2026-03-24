@@ -7,7 +7,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/ProductListApp.csproj",
+        "${workspaceFolder}/LedgerDesk.csproj",
         "/p:Platform=x64",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"

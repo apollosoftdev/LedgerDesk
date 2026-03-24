@@ -1,7 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 
-namespace ProductListApp.Helpers;
+namespace LedgerDesk.Helpers;
 
 public class BoolToVisibilityConverter : IValueConverter
 {

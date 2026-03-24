@@ -1,6 +1,6 @@
 using Microsoft.UI.Xaml;
 
-namespace ProductListApp;
+namespace LedgerDesk;
 
 public partial class App : Application
 {

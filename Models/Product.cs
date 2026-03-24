@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.UI.Xaml.Media.Imaging;
 
-namespace ProductListApp.Models;
+namespace LedgerDesk.Models;
 
 public class Product : INotifyPropertyChanged
 {

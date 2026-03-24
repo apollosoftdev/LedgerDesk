@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows10.0.22621.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-    <RootNamespace>ProductListApp</RootNamespace>
+    <RootNamespace>LedgerDesk</RootNamespace>
 	<PackageReadmeFile>readme.md</PackageReadmeFile>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;ARM64</Platforms>
@@ -27,7 +27,7 @@
     </ItemGroup>
   </Target>
 
-  <!-- Copy ProductListApp.pri to publish output (dotnet publish omits it) -->
+  <!-- Copy LedgerDesk.pri to publish output (dotnet publish omits it) -->
   <Target Name="CopyPriOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).pri"
           DestinationFolder="$(PublishDir)"

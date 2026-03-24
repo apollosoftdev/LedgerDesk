@@ -1,7 +1,7 @@
 using Microsoft.Data.Sqlite;
-using ProductListApp.Models;
+using LedgerDesk.Models;
 
-namespace ProductListApp.Data;
+namespace LedgerDesk.Data;
 
 public class DatabaseHelper
 {
@@ -11,7 +11,7 @@ public class DatabaseHelper
     {
         var dbPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "ProductListApp", "products.db");
+            "LedgerDesk", "products.db");
 
         Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
         _connectionString = $"Data Source={dbPath}";

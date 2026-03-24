@@ -2,11 +2,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "C#: ProductListApp",
+      "name": "C#: LedgerDesk",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/bin/x64/Debug/net9.0-windows10.0.22621.0/ProductListApp.exe",
+      "program": "${workspaceFolder}/bin/x64/Debug/net9.0-windows10.0.22621.0/LedgerDesk.exe",
       "args": [],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",

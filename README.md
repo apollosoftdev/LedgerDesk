@@ -1,4 +1,4 @@
-# Product Manager — WinUI 3 + SQLite
+# LedgerDesk — WinUI 3 + SQLite
 
 A modern Windows desktop app built with **WinUI 3** (Windows App SDK 1.8) + **.NET 9** + **SQLite**.
 
@@ -38,7 +38,7 @@ A modern Windows desktop app built with **WinUI 3** (Windows App SDK 1.8) + **.N
 ## How to Run
 
 ```bash
-cd ProductListApp
+cd LedgerDesk
 
 # Restore NuGet packages
 dotnet restore
@@ -52,14 +52,14 @@ Or open in **Visual Studio 2022** (v17.12+) and press **F5**.
 ## Project Structure
 
 ```
-ProductListApp/
+LedgerDesk/
 ├── App.xaml / App.xaml.cs              # Application entry point
 ├── MainWindow.xaml / .xaml.cs          # Main UI — table, stats, dialogs, Mica backdrop
 ├── Models/
 │   └── Product.cs                      # Product model with INotifyPropertyChanged
 ├── Data/
 │   └── DatabaseHelper.cs              # SQLite init, seed, CRUD operations
-├── ProductListApp.csproj              # .NET 9 + WinAppSDK 1.8 + SQLite
+├── LedgerDesk.csproj              # .NET 9 + WinAppSDK 1.8 + SQLite
 ├── app.manifest                       # DPI awareness
 └── README.md
 ```
@@ -79,6 +79,6 @@ ProductListApp/
 
 SQLite DB auto-created at:
 ```
-%LOCALAPPDATA%\ProductListApp\products.db
+%LOCALAPPDATA%\LedgerDesk\products.db
 ```
 Delete the file to reset to seed data.
