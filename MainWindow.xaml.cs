@@ -163,6 +163,40 @@ public sealed partial class MainWindow : Window
             PerformLogin();
     }
 
+    private async void ForgotPassword_Click(object sender, RoutedEventArgs e)
+    {
+        var l = App.Localization;
+        var keyBox = new TextBox
+        {
+            PlaceholderText = l.Get("activation.key_placeholder"),
+            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Cascadia Code,Consolas,Courier New"),
+        };
+        var dialog = new ContentDialog
+        {
+            Title = l.Get("settings.forgot_password_title"),
+            Content = keyBox,
+            PrimaryButtonText = l.Get("settings.forgot_password_button"),
+            CloseButtonText = l.Get("common.cancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.Content.XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            if (_settingsViewModel.ForgotPassword(keyBox.Text?.Trim() ?? ""))
+            {
+                // Password cleared — show set password screen
+                _loginViewModel = new LoginViewModel(App.Auth);
+                DetermineStartupScreen();
+            }
+            else
+            {
+                LoginError.Text = l.Get("settings.forgot_password_error");
+                LoginError.Visibility = Visibility.Visible;
+            }
+        }
+    }
+
     private void PerformLogin()
     {
         _loginViewModel.Password = LoginPassword.Password;
@@ -725,6 +759,58 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private async void ClearAllRecords_Click(object sender, RoutedEventArgs e)
+    {
+        var l = App.Localization;
+        var passwordBox = new PasswordBox { PlaceholderText = l.Get("login.password_placeholder") };
+        var dialog = new ContentDialog
+        {
+            Title = l.Get("settings.clear_records_title"),
+            Content = passwordBox,
+            PrimaryButtonText = l.Get("settings.clear_records_button"),
+            CloseButtonText = l.Get("common.cancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.Content.XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            if (_settingsViewModel.ClearAllRecords(passwordBox.Password))
+            {
+                ViewModel.LoadRecords();
+            }
+        }
+    }
+
+    private async void ResetApp_Click(object sender, RoutedEventArgs e)
+    {
+        var l = App.Localization;
+        var panel = new StackPanel { Spacing = 12 };
+        panel.Children.Add(new TextBlock { Text = l.Get("settings.reset_app_confirm"), TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap });
+        var passwordBox = new PasswordBox { PlaceholderText = l.Get("login.password_placeholder") };
+        panel.Children.Add(passwordBox);
+
+        var dialog = new ContentDialog
+        {
+            Title = l.Get("settings.reset_app_title"),
+            Content = panel,
+            PrimaryButtonText = l.Get("settings.reset_app_button"),
+            CloseButtonText = l.Get("common.cancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.Content.XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            if (!App.Auth.VerifyPassword(passwordBox.Password))
+                return;
+
+            _settingsViewModel.ResetApp();
+            CloseSettings();
+            DetermineStartupScreen();
+        }
+    }
+
     private async void DeactivateLicense_Click(object sender, RoutedEventArgs e)
     {
         var l = App.Localization;
@@ -886,6 +972,10 @@ public sealed partial class MainWindow : Window
         SettingsMacLabel.Text = l.Get("settings.license_mac");
         SettingsKeyLabel.Text = l.Get("settings.license_key");
         SettingsDeactivateBtn.Content = l.Get("settings.license_deactivate");
+        SettingsDataLabel.Text = l.Get("settings.data_management");
+        SettingsClearRecordsBtn.Content = l.Get("settings.clear_records");
+        SettingsResetAppBtn.Content = l.Get("settings.reset_app");
+        ForgotPasswordLink.Content = l.Get("settings.forgot_password_link");
     }
 }
 

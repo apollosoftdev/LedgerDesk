@@ -172,4 +172,25 @@ public class SettingsViewModel : BaseViewModel
     {
         _license.Deactivate();
     }
+
+    // --- Data Actions ---
+
+    public bool ClearAllRecords(string password)
+    {
+        if (!_auth.VerifyPassword(password)) return false;
+        _db.ClearAllRecords();
+        return true;
+    }
+
+    public void ResetApp()
+    {
+        _db.ResetDatabase();
+    }
+
+    public bool ForgotPassword(string licenseKey)
+    {
+        if (!_license.ValidateKey(licenseKey)) return false;
+        _db.DeleteSetting("password_hash");
+        return true;
+    }
 }

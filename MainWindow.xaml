@@ -448,6 +448,10 @@
                 <Button x:Name="LoginButton" Content="Login"
                         Style="{StaticResource AccentButtonStyle}"
                         HorizontalAlignment="Stretch" Click="Login_Click"/>
+
+                <!-- Forgot Password -->
+                <HyperlinkButton x:Name="ForgotPasswordLink" Content="Forgot Password?"
+                                 HorizontalAlignment="Center" Click="ForgotPassword_Click"/>
             </StackPanel>
         </Grid>
 
@@ -855,6 +859,24 @@
                                                    IsTextSelectionEnabled="True"/>
                                     </StackPanel>
                                     <Button x:Name="SettingsDeactivateBtn" Content="Deactivate License" Click="DeactivateLicense_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- ===== Data Management ===== -->
+                            <Border CornerRadius="8" Padding="20"
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                                <StackPanel Spacing="12">
+                                    <TextBlock x:Name="SettingsDataLabel" Text="Data Management" FontSize="16" FontWeight="SemiBold"/>
+
+                                    <Button x:Name="SettingsClearRecordsBtn" Content="Clear All Records"
+                                            Click="ClearAllRecords_Click"/>
+                                    <Button x:Name="SettingsResetAppBtn" Content="Reset App"
+                                            Click="ResetApp_Click">
+                                        <Button.Foreground>
+                                            <SolidColorBrush Color="{ThemeResource SystemFillColorCritical}"/>
+                                        </Button.Foreground>
+                                    </Button>
                                 </StackPanel>
                             </Border>
 

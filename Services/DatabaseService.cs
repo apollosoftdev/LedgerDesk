@@ -388,6 +388,25 @@ public class DatabaseService
         cmd.ExecuteNonQuery();
     }
 
+    // --- Data Management ---
+
+    public void ClearAllRecords()
+    {
+        using var conn = Open();
+        Execute(conn, "DELETE FROM RecordImages");
+        Execute(conn, "DELETE FROM Records");
+    }
+
+    public void ResetDatabase()
+    {
+        using var conn = Open();
+        Execute(conn, "DELETE FROM RecordImages");
+        Execute(conn, "DELETE FROM Records");
+        Execute(conn, "DELETE FROM Categories");
+        Execute(conn, "DELETE FROM AppSettings");
+        SeedCategories(conn);
+    }
+
     // --- Helpers ---
 
     private SqliteConnection Open()
