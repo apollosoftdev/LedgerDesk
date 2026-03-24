@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using LedgerDesk.Models;
+using LedgerDesk.Services;
 using LedgerDesk.ViewModels;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
@@ -35,6 +36,7 @@ public sealed partial class MainWindow : Window
         _settingsViewModel = new SettingsViewModel(App.Database, App.Auth, App.License, App.Settings);
 
         _filterViewModel.FilterChanged += OnFilterChanged;
+        App.Localization.LanguageChanged += RefreshAllText;
 
         this.InitializeComponent();
 
@@ -43,6 +45,7 @@ public sealed partial class MainWindow : Window
         SetWindowSize(1200, 780);
         SetupTitleBar();
         TrySetMicaBackdrop();
+        RefreshAllText();
 
         // Startup flow: license → login → main
         DetermineStartupScreen();
@@ -301,6 +304,23 @@ public sealed partial class MainWindow : Window
                 break;
             }
         }
+
+        // Language selector
+        SettingsLanguage.Items.Clear();
+        foreach (var lang in LocalizationService.SupportedLanguages)
+        {
+            var item = new ComboBoxItem
+            {
+                Content = LocalizationService.GetLanguageDisplayName(lang),
+                Tag = lang,
+            };
+            SettingsLanguage.Items.Add(item);
+            if (lang == App.Localization.CurrentLanguage)
+                SettingsLanguage.SelectedItem = item;
+        }
+
+        // Text customization list
+        LoadTextCustomizationList();
 
         ShowPanel("Settings");
     }
@@ -669,12 +689,13 @@ public sealed partial class MainWindow : Window
 
     private async void DeactivateLicense_Click(object sender, RoutedEventArgs e)
     {
+        var l = App.Localization;
         var dialog = new ContentDialog
         {
-            Title = "Deactivate License",
-            Content = "This will lock the app until a new license key is entered. Continue?",
-            PrimaryButtonText = "Deactivate",
-            CloseButtonText = "Cancel",
+            Title = l.Get("settings.deactivate_title"),
+            Content = l.Get("settings.deactivate_confirm"),
+            PrimaryButtonText = l.Get("settings.license_deactivate"),
+            CloseButtonText = l.Get("common.cancel"),
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = this.Content.XamlRoot,
         };
@@ -685,4 +706,70 @@ public sealed partial class MainWindow : Window
             DetermineStartupScreen();
         }
     }
+
+    // ============================
+    //  Language & Text Customization
+    // ============================
+
+    private void LanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SettingsLanguage.SelectedItem is not ComboBoxItem item) return;
+        var lang = item.Tag?.ToString() ?? "en";
+        if (lang != App.Localization.CurrentLanguage)
+        {
+            App.Localization.SwitchLanguage(lang);
+            LoadTextCustomizationList();
+        }
+    }
+
+    private void TextOverride_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is not TextBox tb || tb.Tag is not string key) return;
+        var currentVal = App.Localization.Get(key);
+        if (tb.Text != currentVal)
+        {
+            App.Localization.SetOverride(key, tb.Text);
+        }
+    }
+
+    private void ResetTextOverrides_Click(object sender, RoutedEventArgs e)
+    {
+        App.Localization.ResetOverrides();
+        LoadTextCustomizationList();
+    }
+
+    private void LoadTextCustomizationList()
+    {
+        var strings = App.Localization.GetAllStrings();
+        var items = strings.Select(kv => new TextEntry { Key = kv.Key, Value = kv.Value })
+            .OrderBy(t => t.Key)
+            .ToList();
+        SettingsTextList.ItemsSource = items;
+    }
+
+    // ============================
+    //  RefreshAllText (Localization)
+    // ============================
+
+    private void RefreshAllText()
+    {
+        var l = App.Localization;
+
+        // Dashboard
+        SubtitleText.Text = l.Get("dashboard.subtitle");
+
+        // Filter bar
+        FilterTitle.PlaceholderText = l.Get("filter.search_title");
+        FilterDescription.PlaceholderText = l.Get("filter.search_desc");
+        FilterAmountMin.PlaceholderText = l.Get("filter.min_amount");
+        FilterAmountMax.PlaceholderText = l.Get("filter.max_amount");
+        FilterDateStart.PlaceholderText = l.Get("filter.from_date");
+        FilterDateEnd.PlaceholderText = l.Get("filter.to_date");
+    }
+}
+
+public class TextEntry
+{
+    public string Key { get; set; } = "";
+    public string Value { get; set; } = "";
 }

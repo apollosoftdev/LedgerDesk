@@ -753,6 +753,60 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- ===== Language ===== -->
+                    <Border CornerRadius="8" Padding="20"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <StackPanel Spacing="12">
+                            <TextBlock x:Name="SettingsLanguageLabel" Text="Language" FontSize="16" FontWeight="SemiBold"/>
+                            <ComboBox x:Name="SettingsLanguage" Width="200"
+                                      SelectionChanged="LanguageChanged"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ===== UI Text Customization ===== -->
+                    <Border CornerRadius="8" Padding="20"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <StackPanel Spacing="12">
+                            <Grid>
+                                <TextBlock x:Name="SettingsTextCustomLabel" Text="UI Text Customization"
+                                           FontSize="16" FontWeight="SemiBold"/>
+                                <Button x:Name="SettingsTextResetButton" Content="Reset to Default"
+                                        HorizontalAlignment="Right" Click="ResetTextOverrides_Click"/>
+                            </Grid>
+
+                            <ListView x:Name="SettingsTextList" MaxHeight="300" SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="2,4" ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="180"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Key}"
+                                                       FontSize="11" VerticalAlignment="Center"
+                                                       FontFamily="Cascadia Code,Consolas,Courier New"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Value}"
+                                                     FontSize="12"
+                                                     LostFocus="TextOverride_LostFocus"
+                                                     Tag="{Binding Key}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="MinHeight" Value="0"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                            </ListView>
+                        </StackPanel>
+                    </Border>
+
                     <!-- ===== License Info ===== -->
                     <Border CornerRadius="8" Padding="20"
                             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"

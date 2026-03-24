@@ -11,6 +11,7 @@ public partial class App : Application
     public static SettingsService Settings { get; private set; } = null!;
     public static LicenseService License { get; private set; } = null!;
     public static AuthService Auth { get; private set; } = null!;
+    public static LocalizationService Localization { get; private set; } = null!;
 
     public App()
     {
@@ -22,6 +23,8 @@ public partial class App : Application
         Settings = new SettingsService(Database);
         License = new LicenseService(Database);
         Auth = new AuthService(Database);
+        Localization = new LocalizationService(Database);
+        Localization.Initialize(Settings.Get("language", "en"));
 
         _window = new MainWindow();
         _window.Activate();
