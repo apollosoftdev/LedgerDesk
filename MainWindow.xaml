@@ -645,10 +645,143 @@
             </StackPanel>
         </Grid>
 
-        <!-- ==================== Settings Panel (Phase 6) ==================== -->
+        <!-- ==================== Settings Panel ==================== -->
         <Grid x:Name="SettingsPanel" Grid.Row="1" Visibility="Collapsed" Padding="32,16,32,24">
-            <TextBlock Text="Settings — Phase 6" VerticalAlignment="Center" HorizontalAlignment="Center"
-                       Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Button Click="SettingsBack_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE72B;" FontSize="14"/>
+                        <TextBlock Text="Back to Dashboard"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+
+            <!-- Settings Content -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="600" HorizontalAlignment="Left" Spacing="24">
+
+                    <!-- ===== Security ===== -->
+                    <Border CornerRadius="8" Padding="20"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Security" FontSize="16" FontWeight="SemiBold"/>
+
+                            <PasswordBox x:Name="SettingsOldPassword" Header="Current Password"
+                                         PlaceholderText="Enter current password"/>
+                            <PasswordBox x:Name="SettingsNewPassword" Header="New Password"
+                                         PlaceholderText="Enter new password"/>
+                            <PasswordBox x:Name="SettingsConfirmPassword" Header="Confirm New Password"
+                                         PlaceholderText="Re-enter new password"/>
+
+                            <TextBlock x:Name="SettingsPasswordMessage" FontSize="13"
+                                       Visibility="Collapsed"/>
+
+                            <Button Content="Change Password" Click="ChangePassword_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ===== Categories ===== -->
+                    <Border CornerRadius="8" Padding="20"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Categories" FontSize="16" FontWeight="SemiBold"/>
+
+                            <ListView x:Name="SettingsCategoryList" SelectionMode="None"
+                                      MaxHeight="200">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                                       VerticalAlignment="Center" FontSize="14"/>
+                                            <Button Grid.Column="1" Click="DeleteCategory_Click"
+                                                    Tag="{Binding}" Padding="6,4"
+                                                    ToolTipService.ToolTip="Delete category">
+                                                <FontIcon Glyph="&#xE74D;" FontSize="12"
+                                                          Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="MinHeight" Value="0"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                            </ListView>
+
+                            <!-- Add Category -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="SettingsNewCategory" Grid.Column="0"
+                                         PlaceholderText="New category name"/>
+                                <Button Grid.Column="2" Content="Add" Click="AddCategory_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ===== Theme ===== -->
+                    <Border CornerRadius="8" Padding="20"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Theme" FontSize="16" FontWeight="SemiBold"/>
+                            <RadioButtons x:Name="SettingsTheme" SelectionChanged="ThemeChanged">
+                                <RadioButton Content="System Default" Tag="Default"/>
+                                <RadioButton Content="Light" Tag="Light"/>
+                                <RadioButton Content="Dark" Tag="Dark"/>
+                            </RadioButtons>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ===== License Info ===== -->
+                    <Border CornerRadius="8" Padding="20"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="License Info" FontSize="16" FontWeight="SemiBold"/>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Device ID (MAC Address)" FontSize="12"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="SettingsMacAddress"
+                                           FontFamily="Cascadia Code,Consolas,Courier New"
+                                           IsTextSelectionEnabled="True"/>
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="License Key" FontSize="12"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="SettingsLicenseKey"
+                                           FontFamily="Cascadia Code,Consolas,Courier New"
+                                           IsTextSelectionEnabled="True"/>
+                            </StackPanel>
+
+                            <Button Content="Deactivate License" Click="DeactivateLicense_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Window>

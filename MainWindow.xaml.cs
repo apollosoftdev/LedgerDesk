@@ -21,6 +21,7 @@ public sealed partial class MainWindow : Window
     private readonly FilterViewModel _filterViewModel;
     private readonly ActivationViewModel _activationViewModel;
     private LoginViewModel _loginViewModel;
+    private readonly SettingsViewModel _settingsViewModel;
 
     public MainWindow()
     {
@@ -31,6 +32,7 @@ public sealed partial class MainWindow : Window
         _filterViewModel = new FilterViewModel();
         _activationViewModel = new ActivationViewModel(App.License);
         _loginViewModel = new LoginViewModel(App.Auth);
+        _settingsViewModel = new SettingsViewModel(App.Database, App.Auth, App.License, App.Settings);
 
         _filterViewModel.FilterChanged += OnFilterChanged;
 
@@ -112,6 +114,10 @@ public sealed partial class MainWindow : Window
 
     private void EnterMainApp()
     {
+        // Apply saved theme
+        var theme = App.Settings.Get("theme", "Default");
+        ApplyTheme(theme);
+
         PopulateFilterCategories();
         ViewModel.LoadRecords();
         ShowPanel("Main");
@@ -272,6 +278,30 @@ public sealed partial class MainWindow : Window
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
         CloseSidePanel();
+        OpenSettings();
+    }
+
+    private void OpenSettings()
+    {
+        _settingsViewModel.Load();
+
+        // Populate UI
+        SettingsCategoryList.ItemsSource = _settingsViewModel.Categories;
+        SettingsMacAddress.Text = _settingsViewModel.MacAddress;
+        SettingsLicenseKey.Text = _settingsViewModel.LicenseKey;
+        SettingsPasswordMessage.Visibility = Visibility.Collapsed;
+
+        // Theme radio
+        var theme = _settingsViewModel.SelectedTheme;
+        foreach (var item in SettingsTheme.Items)
+        {
+            if (item is RadioButton rb && rb.Tag?.ToString() == theme)
+            {
+                rb.IsChecked = true;
+                break;
+            }
+        }
+
         ShowPanel("Settings");
     }
 
@@ -498,5 +528,161 @@ public sealed partial class MainWindow : Window
         FormImageList.ItemsSource = _formViewModel.PendingImages;
         FormImageList.Visibility = hasImages ? Visibility.Visible : Visibility.Collapsed;
         FormImagePlaceholder.Visibility = hasImages ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    // ============================
+    //  Settings
+    // ============================
+
+    private void SettingsBack_Click(object sender, RoutedEventArgs e)
+    {
+        PopulateFilterCategories();
+        ViewModel.LoadRecords();
+        ShowPanel("Main");
+    }
+
+    private void ChangePassword_Click(object sender, RoutedEventArgs e)
+    {
+        _settingsViewModel.OldPassword = SettingsOldPassword.Password;
+        _settingsViewModel.NewPassword = SettingsNewPassword.Password;
+        _settingsViewModel.ConfirmPassword = SettingsConfirmPassword.Password;
+
+        _settingsViewModel.TryChangePassword();
+
+        SettingsPasswordMessage.Text = _settingsViewModel.PasswordMessage;
+        SettingsPasswordMessage.Foreground = _settingsViewModel.PasswordMessageIsError
+            ? new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 239, 68, 68))
+            : new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 16, 185, 129));
+        SettingsPasswordMessage.Visibility = Visibility.Visible;
+
+        if (!_settingsViewModel.PasswordMessageIsError)
+        {
+            SettingsOldPassword.Password = "";
+            SettingsNewPassword.Password = "";
+            SettingsConfirmPassword.Password = "";
+        }
+    }
+
+    private void AddCategory_Click(object sender, RoutedEventArgs e)
+    {
+        _settingsViewModel.NewCategoryName = SettingsNewCategory.Text?.Trim() ?? "";
+        if (_settingsViewModel.AddCategory())
+        {
+            SettingsNewCategory.Text = "";
+            SettingsCategoryList.ItemsSource = null;
+            SettingsCategoryList.ItemsSource = _settingsViewModel.Categories;
+        }
+    }
+
+    private async void DeleteCategory_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn || btn.Tag is not Category cat) return;
+
+        // Check if any records use this category
+        var filter = new RecordFilter { CategoryFilter = cat.Name };
+        var affected = App.Database.SearchRecords(filter);
+
+        if (affected.Count > 0)
+        {
+            // Ask for reassignment
+            var otherCats = _settingsViewModel.Categories
+                .Where(c => c.Id != cat.Id)
+                .Select(c => c.Name)
+                .ToList();
+
+            if (otherCats.Count == 0)
+            {
+                var infoDialog = new ContentDialog
+                {
+                    Title = "Cannot Delete",
+                    Content = $"Cannot delete \"{cat.Name}\" — it has {affected.Count} records and no other categories exist.",
+                    CloseButtonText = "OK",
+                    XamlRoot = this.Content.XamlRoot,
+                };
+                await infoDialog.ShowAsync();
+                return;
+            }
+
+            var combo = new ComboBox { ItemsSource = otherCats, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
+            var panel = new StackPanel { Spacing = 12 };
+            panel.Children.Add(new TextBlock { Text = $"\"{cat.Name}\" has {affected.Count} record(s). Reassign them to:", TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap });
+            panel.Children.Add(combo);
+
+            var dialog = new ContentDialog
+            {
+                Title = "Delete Category",
+                Content = panel,
+                PrimaryButtonText = "Delete & Reassign",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = this.Content.XamlRoot,
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                _settingsViewModel.DeleteCategory(cat.Id, combo.SelectedItem as string);
+                SettingsCategoryList.ItemsSource = null;
+                SettingsCategoryList.ItemsSource = _settingsViewModel.Categories;
+            }
+        }
+        else
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "Delete Category",
+                Content = $"Delete \"{cat.Name}\"?",
+                PrimaryButtonText = "Delete",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = this.Content.XamlRoot,
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                _settingsViewModel.DeleteCategory(cat.Id, null);
+                SettingsCategoryList.ItemsSource = null;
+                SettingsCategoryList.ItemsSource = _settingsViewModel.Categories;
+            }
+        }
+    }
+
+    private void ThemeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SettingsTheme.SelectedItem is not RadioButton rb) return;
+        var theme = rb.Tag?.ToString() ?? "Default";
+        _settingsViewModel.SelectedTheme = theme;
+        ApplyTheme(theme);
+    }
+
+    private void ApplyTheme(string theme)
+    {
+        if (Content is FrameworkElement root)
+        {
+            root.RequestedTheme = theme switch
+            {
+                "Light" => ElementTheme.Light,
+                "Dark" => ElementTheme.Dark,
+                _ => ElementTheme.Default,
+            };
+        }
+    }
+
+    private async void DeactivateLicense_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "Deactivate License",
+            Content = "This will lock the app until a new license key is entered. Continue?",
+            PrimaryButtonText = "Deactivate",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.Content.XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            _settingsViewModel.Deactivate();
+            DetermineStartupScreen();
+        }
     }
 }
