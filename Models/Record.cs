@@ -14,6 +14,7 @@ public class Record : INotifyPropertyChanged
     private DateTime _createdAt;
     private DateTime _updatedAt;
     private bool _hasImages;
+    private int _balanceType; // 0 = Income, 1 = Expense
 
     public int Id
     {
@@ -69,8 +70,17 @@ public class Record : INotifyPropertyChanged
         set { _hasImages = value; OnPropertyChanged(); }
     }
 
+    public int BalanceType
+    {
+        get => _balanceType;
+        set { _balanceType = value; OnPropertyChanged(); OnPropertyChanged(nameof(BalanceTypeDisplay)); OnPropertyChanged(nameof(AmountDisplay)); }
+    }
+
+    public bool IsExpense => BalanceType == 1;
+    public string BalanceTypeDisplay => BalanceType == 1 ? "Expense" : "Income";
+
     // Computed display properties
-    public string AmountDisplay => Amount >= 0 ? $"+${Amount:N2}" : $"-${Math.Abs(Amount):N2}";
+    public string AmountDisplay => IsExpense ? $"-${Math.Abs(Amount):N2}" : $"+${Amount:N2}";
     public string DateDisplay => Date.ToString("yyyy-MM-dd");
 
     public event PropertyChangedEventHandler? PropertyChanged;

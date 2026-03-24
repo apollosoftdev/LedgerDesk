@@ -40,11 +40,19 @@ public class DatabaseService
                 Category    TEXT    NOT NULL,
                 Description TEXT    NOT NULL DEFAULT '',
                 Amount      REAL    NOT NULL,
+                BalanceType INTEGER NOT NULL DEFAULT 0,
                 Date        TEXT    NOT NULL,
                 CreatedAt   TEXT    NOT NULL,
                 UpdatedAt   TEXT    NOT NULL
             )
             """);
+
+        // Migration: add BalanceType column if missing
+        try
+        {
+            Execute(conn, "ALTER TABLE Records ADD COLUMN BalanceType INTEGER NOT NULL DEFAULT 0");
+        }
+        catch (SqliteException) { /* column already exists */ }
 
         Execute(conn, """
             CREATE TABLE IF NOT EXISTS RecordImages (
@@ -77,7 +85,7 @@ public class DatabaseService
 
     private static void SeedCategories(SqliteConnection conn)
     {
-        var categories = new[] { "Income", "Expense", "Transfer", "Other" };
+        var categories = new[] { "Salary", "Food", "Transport", "Shopping", "Bills", "Entertainment", "Health", "Education", "Other" };
         using var txn = conn.BeginTransaction();
         for (int i = 0; i < categories.Length; i++)
         {
@@ -95,14 +103,14 @@ public class DatabaseService
     public List<Record> GetAllRecords()
     {
         using var conn = Open();
-        return QueryRecords(conn, "SELECT Id, Title, Category, Description, Amount, Date, CreatedAt, UpdatedAt FROM Records ORDER BY Date DESC, Id DESC");
+        return QueryRecords(conn, "SELECT Id, Title, Category, Description, Amount, BalanceType, Date, CreatedAt, UpdatedAt FROM Records ORDER BY Date DESC, Id DESC");
     }
 
     public Record? GetRecordById(int id)
     {
         using var conn = Open();
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT Id, Title, Category, Description, Amount, Date, CreatedAt, UpdatedAt FROM Records WHERE Id = $id";
+        cmd.CommandText = "SELECT Id, Title, Category, Description, Amount, BalanceType, Date, CreatedAt, UpdatedAt FROM Records WHERE Id = $id";
         cmd.Parameters.AddWithValue("$id", id);
 
         using var rdr = cmd.ExecuteReader();
@@ -159,7 +167,7 @@ public class DatabaseService
         }
 
         var where = conditions.Count > 0 ? " WHERE " + string.Join(" AND ", conditions) : "";
-        var sql = $"SELECT Id, Title, Category, Description, Amount, Date, CreatedAt, UpdatedAt FROM Records{where} ORDER BY Date DESC, Id DESC";
+        var sql = $"SELECT Id, Title, Category, Description, Amount, BalanceType, Date, CreatedAt, UpdatedAt FROM Records{where} ORDER BY Date DESC, Id DESC";
 
         using var cmd = conn.CreateCommand();
         cmd.CommandText = sql;
@@ -184,14 +192,15 @@ public class DatabaseService
 
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
-            INSERT INTO Records (Title, Category, Description, Amount, Date, CreatedAt, UpdatedAt)
-            VALUES ($title, $category, $desc, $amount, $date, $createdAt, $updatedAt);
+            INSERT INTO Records (Title, Category, Description, Amount, BalanceType, Date, CreatedAt, UpdatedAt)
+            VALUES ($title, $category, $desc, $amount, $balanceType, $date, $createdAt, $updatedAt);
             SELECT last_insert_rowid();
             """;
         cmd.Parameters.AddWithValue("$title", record.Title);
         cmd.Parameters.AddWithValue("$category", record.Category);
         cmd.Parameters.AddWithValue("$desc", record.Description);
         cmd.Parameters.AddWithValue("$amount", (double)record.Amount);
+        cmd.Parameters.AddWithValue("$balanceType", record.BalanceType);
         cmd.Parameters.AddWithValue("$date", record.Date.ToString("yyyy-MM-dd"));
         cmd.Parameters.AddWithValue("$createdAt", now);
         cmd.Parameters.AddWithValue("$updatedAt", now);
@@ -207,7 +216,7 @@ public class DatabaseService
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
             UPDATE Records SET Title=$title, Category=$category, Description=$desc,
-                               Amount=$amount, Date=$date, UpdatedAt=$updatedAt
+                               Amount=$amount, BalanceType=$balanceType, Date=$date, UpdatedAt=$updatedAt
             WHERE Id=$id
             """;
         cmd.Parameters.AddWithValue("$id", record.Id);
@@ -215,6 +224,7 @@ public class DatabaseService
         cmd.Parameters.AddWithValue("$category", record.Category);
         cmd.Parameters.AddWithValue("$desc", record.Description);
         cmd.Parameters.AddWithValue("$amount", (double)record.Amount);
+        cmd.Parameters.AddWithValue("$balanceType", record.BalanceType);
         cmd.Parameters.AddWithValue("$date", record.Date.ToString("yyyy-MM-dd"));
         cmd.Parameters.AddWithValue("$updatedAt", now);
         cmd.ExecuteNonQuery();
@@ -403,9 +413,10 @@ public class DatabaseService
             Category = rdr.GetString(2),
             Description = rdr.GetString(3),
             Amount = (decimal)rdr.GetDouble(4),
-            Date = DateTime.Parse(rdr.GetString(5)),
-            CreatedAt = DateTime.Parse(rdr.GetString(6)),
-            UpdatedAt = DateTime.Parse(rdr.GetString(7)),
+            BalanceType = rdr.GetInt32(5),
+            Date = DateTime.Parse(rdr.GetString(6)),
+            CreatedAt = DateTime.Parse(rdr.GetString(7)),
+            UpdatedAt = DateTime.Parse(rdr.GetString(8)),
         };
     }
 

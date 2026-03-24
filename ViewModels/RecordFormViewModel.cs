@@ -12,6 +12,7 @@ public class RecordFormViewModel : BaseViewModel
     private string _category = string.Empty;
     private string _description = string.Empty;
     private double _amount;
+    private int _balanceType; // 0 = Income, 1 = Expense
     private DateTimeOffset _date = DateTimeOffset.Now;
     private bool _isEditMode;
     private int _editRecordId;
@@ -39,6 +40,12 @@ public class RecordFormViewModel : BaseViewModel
     {
         get => _amount;
         set => SetProperty(ref _amount, value);
+    }
+
+    public int BalanceType
+    {
+        get => _balanceType;
+        set => SetProperty(ref _balanceType, value);
     }
 
     public DateTimeOffset Date
@@ -78,6 +85,7 @@ public class RecordFormViewModel : BaseViewModel
         Category = string.Empty;
         Description = string.Empty;
         Amount = 0;
+        BalanceType = 0; // default Income
         Date = DateTimeOffset.Now;
         PendingImages.Clear();
     }
@@ -89,10 +97,8 @@ public class RecordFormViewModel : BaseViewModel
         Title = record.Title;
         Category = record.Category;
         Description = record.Description;
-        // Show positive value in form for Expense (we auto-negate on save)
-        Amount = record.Category.Equals("Expense", StringComparison.OrdinalIgnoreCase)
-            ? (double)Math.Abs(record.Amount)
-            : (double)record.Amount;
+        Amount = (double)Math.Abs(record.Amount); // always show positive in form
+        BalanceType = record.BalanceType;
         Date = new DateTimeOffset(record.Date);
 
         PendingImages.Clear();
@@ -124,11 +130,11 @@ public class RecordFormViewModel : BaseViewModel
 
     public int Save()
     {
-        var amount = (decimal)(double.IsNaN(Amount) ? 0 : Amount);
+        var amount = Math.Abs((decimal)(double.IsNaN(Amount) ? 0 : Amount));
         var category = Category.Trim();
 
-        // Auto-negate for Expense category: user enters positive, stored as negative
-        if (category.Equals("Expense", StringComparison.OrdinalIgnoreCase) && amount > 0)
+        // Apply sign based on balance type: Expense = negative
+        if (BalanceType == 1 && amount > 0)
             amount = -amount;
 
         var record = new Record
@@ -137,6 +143,7 @@ public class RecordFormViewModel : BaseViewModel
             Category = category,
             Description = Description?.Trim() ?? string.Empty,
             Amount = amount,
+            BalanceType = BalanceType,
             Date = Date.DateTime,
         };
 

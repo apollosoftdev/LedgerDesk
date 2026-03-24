@@ -86,7 +86,7 @@ public sealed partial class MainWindow : Window
         ActivationPanel.Visibility = panel == "Activation" ? Visibility.Visible : Visibility.Collapsed;
         LoginPanel.Visibility = panel == "Login" ? Visibility.Visible : Visibility.Collapsed;
         MainPanel.Visibility = panel == "Main" ? Visibility.Visible : Visibility.Collapsed;
-        SettingsPanel.Visibility = panel == "Settings" ? Visibility.Visible : Visibility.Collapsed;
+        // Settings is an overlay — don't toggle here
         _mainViewModel.NavigateTo(panel);
     }
 
@@ -193,6 +193,10 @@ public sealed partial class MainWindow : Window
         DetailTitle.Text = record.Title;
         DetailCategory.Text = record.Category;
         DetailDate.Text = record.DateDisplay;
+        DetailBalanceType.Text = record.BalanceTypeDisplay;
+        DetailBalanceTypeBorder.Background = record.IsExpense
+            ? new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 239, 68, 68))
+            : new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 16, 185, 129));
         DetailAmount.Text = record.AmountDisplay;
         DetailAmount.Foreground = record.Amount switch
         {
@@ -231,6 +235,10 @@ public sealed partial class MainWindow : Window
         FormCategory.Items.Clear();
         foreach (var cat in ViewModel.Categories)
             FormCategory.Items.Add(cat);
+
+        // Balance type toggles
+        FormIncomeToggle.IsChecked = _formViewModel.BalanceType == 0;
+        FormExpenseToggle.IsChecked = _formViewModel.BalanceType == 1;
 
         FormTitle.Text = _formViewModel.Title;
         FormCategory.Text = _formViewModel.Category;
@@ -280,7 +288,6 @@ public sealed partial class MainWindow : Window
 
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        CloseSidePanel();
         OpenSettings();
     }
 
@@ -322,7 +329,7 @@ public sealed partial class MainWindow : Window
         // Text customization list
         LoadTextCustomizationList();
 
-        ShowPanel("Settings");
+        SettingsPanel.Visibility = Visibility.Visible;
     }
 
     // ============================
@@ -467,6 +474,7 @@ public sealed partial class MainWindow : Window
         _formViewModel.Category = FormCategory.Text?.Trim() ?? "";
         _formViewModel.Description = FormDescription.Text?.Trim() ?? "";
         _formViewModel.Amount = double.IsNaN(FormAmount.Value) ? 0 : FormAmount.Value;
+        _formViewModel.BalanceType = FormExpenseToggle.IsChecked == true ? 1 : 0;
         _formViewModel.Date = FormDate.Date ?? DateTimeOffset.Now;
 
         if (!_formViewModel.Validate())
@@ -482,6 +490,24 @@ public sealed partial class MainWindow : Window
         ApplyCurrentFilter();
         PopulateFilterCategories();
         OpenSidePanelDetail(savedId);
+    }
+
+    // ============================
+    //  Balance Type Toggle
+    // ============================
+
+    private void BalanceType_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender == FormIncomeToggle)
+        {
+            FormIncomeToggle.IsChecked = true;
+            FormExpenseToggle.IsChecked = false;
+        }
+        else
+        {
+            FormIncomeToggle.IsChecked = false;
+            FormExpenseToggle.IsChecked = true;
+        }
     }
 
     // ============================
@@ -556,9 +582,19 @@ public sealed partial class MainWindow : Window
 
     private void SettingsBack_Click(object sender, RoutedEventArgs e)
     {
+        CloseSettings();
+    }
+
+    private void SettingsBackdrop_Click(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        CloseSettings();
+    }
+
+    private void CloseSettings()
+    {
+        SettingsPanel.Visibility = Visibility.Collapsed;
         PopulateFilterCategories();
         ViewModel.LoadRecords();
-        ShowPanel("Main");
     }
 
     private void ChangePassword_Click(object sender, RoutedEventArgs e)
@@ -755,8 +791,16 @@ public sealed partial class MainWindow : Window
     {
         var l = App.Localization;
 
-        // Dashboard
+        // Dashboard header
+        DashboardTitle.Text = l.Get("dashboard.title");
         SubtitleText.Text = l.Get("dashboard.subtitle");
+        NewRecordButtonText.Text = l.Get("record.new_button");
+
+        // Stats cards
+        StatTotalLabel.Text = l.Get("dashboard.stat_total");
+        StatIncomeLabel.Text = l.Get("dashboard.stat_income");
+        StatExpenseLabel.Text = l.Get("dashboard.stat_expense");
+        StatBalanceLabel.Text = l.Get("dashboard.stat_balance");
 
         // Filter bar
         FilterTitle.PlaceholderText = l.Get("filter.search_title");
@@ -765,6 +809,43 @@ public sealed partial class MainWindow : Window
         FilterAmountMax.PlaceholderText = l.Get("filter.max_amount");
         FilterDateStart.PlaceholderText = l.Get("filter.from_date");
         FilterDateEnd.PlaceholderText = l.Get("filter.to_date");
+        ClearFiltersText.Text = l.Get("filter.clear");
+
+        // Table headers
+        ColDate.Text = l.Get("table.date");
+        ColType.Text = l.Get("balance.type_label");
+        ColTitle.Text = l.Get("table.title");
+        ColCategory.Text = l.Get("table.category");
+        ColAmount.Text = l.Get("table.amount");
+
+        // Empty state
+        EmptyTitle.Text = l.Get("empty.title");
+        EmptySubtitle.Text = l.Get("empty.subtitle");
+
+        // Detail panel
+        DetailHeaderText.Text = l.Get("detail.title");
+        DetailAmountLabel.Text = l.Get("detail.amount_label");
+        DetailDescLabel.Text = l.Get("detail.desc_label");
+        DetailEditText.Text = l.Get("detail.edit");
+        DetailDeleteText.Text = l.Get("detail.delete");
+
+        // Form panel
+        FormBalanceTypeLabel.Text = l.Get("balance.type_label");
+        FormIncomeToggle.Content = l.Get("balance.income");
+        FormExpenseToggle.Content = l.Get("balance.expense");
+        FormImageDropText.Text = l.Get("form.image_drop");
+        FormImageBrowseLink.Content = l.Get("form.image_browse");
+        FormTitle.Header = l.Get("form.title_header");
+        FormTitle.PlaceholderText = l.Get("form.title_placeholder");
+        FormCategory.Header = l.Get("form.category_header");
+        FormCategory.PlaceholderText = l.Get("form.category_placeholder");
+        FormAmount.Header = l.Get("form.amount_header");
+        FormDate.Header = l.Get("form.date_header");
+        FormDate.PlaceholderText = l.Get("form.date_placeholder");
+        FormDescription.Header = l.Get("form.desc_header");
+        FormDescription.PlaceholderText = l.Get("form.desc_placeholder");
+        FormSaveButton.Content = l.Get("form.save");
+        FormCancelButton.Content = l.Get("form.cancel");
     }
 }
 

@@ -122,6 +122,10 @@
   "category.cannot_delete": "Cannot Delete",
   "category.cannot_delete_msg": "Cannot delete \"{0}\" — it has {1} records and no other categories exist.",
 
+  "balance.income": "Income",
+  "balance.expense": "Expense",
+  "balance.type_label": "Balance Type",
+
   "common.ok": "OK",
   "common.cancel": "Cancel",
   "common.close": "Close"
