@@ -18,6 +18,14 @@
 	<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
 
+  <!-- Exclude .winmd files from build/publish output (not needed at runtime for CsWinRT projections) -->
+  <Target Name="ExcludeWinMDFromOutput"
+          AfterTargets="AddMicrosoftWindowsAppSDKPayloadFilesFromMsix;AddMicrosoftWindowsAppSDKPayloadFilesFromComponents">
+    <ItemGroup>
+      <None Remove="@(None)" Condition="'%(Extension)' == '.winmd'" />
+    </ItemGroup>
+  </Target>
+
   <!-- Copy LedgerDesk.pri to publish output (dotnet publish omits it) -->
   <Target Name="CopyPriOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).pri"

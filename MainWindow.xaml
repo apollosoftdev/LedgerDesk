@@ -82,9 +82,8 @@
         <!-- Custom Title Bar -->
         <Grid x:Name="AppTitleBar" Grid.Row="0" Padding="16,0">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <FontIcon Glyph="&#xE719;" FontSize="16"
-                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                          Margin="0,0,10,0"/>
+                <Image Source="Assets/app.ico" Width="16" Height="16"
+                       Margin="0,0,10,0"/>
                 <TextBlock Text="LedgerDesk" Style="{StaticResource CaptionTextBlockStyle}"
                            VerticalAlignment="Center"/>
             </StackPanel>

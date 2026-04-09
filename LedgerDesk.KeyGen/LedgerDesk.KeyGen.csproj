@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -18,10 +18,7 @@
 
   <!-- Copy .pri to publish output (required for WinUI 3 resource loading) -->
   <Target Name="CopyPriOnPublish" AfterTargets="Publish">
-    <Copy SourceFiles="$(OutputPath)$(AssemblyName).pri"
-          DestinationFolder="$(PublishDir)"
-          SkipUnchangedFiles="true"
-          Condition="Exists('$(OutputPath)$(AssemblyName).pri')" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).pri" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" Condition="Exists('$(OutputPath)$(AssemblyName).pri')" />
   </Target>
 
   <ItemGroup>

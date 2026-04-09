@@ -2,8 +2,8 @@
 ; Download Inno Setup from https://jrsoftware.org/isinfo.php
 
 #define MyAppName "LedgerDesk"
-#define MyAppVersion "1.0.0"
-#define MyAppPublisher "LedgerDesk"
+#define MyAppVersion "1.0.1"
+#define MyAppPublisher "Apollo Software, Inc."
 #define MyAppExeName "LedgerDesk.exe"
 
 [Setup]

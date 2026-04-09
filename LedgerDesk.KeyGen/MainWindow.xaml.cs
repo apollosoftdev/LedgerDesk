@@ -21,6 +21,7 @@ public sealed partial class MainWindow : Window
         var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
         appWindow.Resize(new Windows.Graphics.SizeInt32(520, 800));
+        appWindow.SetIcon("Assets/app.ico");
     }
 
     private void Generate_Click(object sender, RoutedEventArgs e)
