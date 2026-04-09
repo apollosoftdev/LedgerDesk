@@ -106,6 +106,7 @@
   "settings.theme_light": "Light",
   "settings.theme_dark": "Dark",
   "settings.language": "Language",
+  "settings.currency": "Currency",
   "settings.text_customization": "UI Text Customization",
   "settings.text_key": "Key",
   "settings.text_value": "Value",

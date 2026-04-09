@@ -43,6 +43,21 @@ public class SettingsViewModel : BaseViewModel
         }
     }
 
+    // --- Currency ---
+    private string _selectedCurrency = "CNY";
+    public string SelectedCurrency
+    {
+        get => _selectedCurrency;
+        set
+        {
+            if (SetProperty(ref _selectedCurrency, value))
+            {
+                _settings.Set("currency", value);
+                App.CurrencySymbol = App.SupportedCurrencies.GetValueOrDefault(value, "¥");
+            }
+        }
+    }
+
     // --- License ---
     private string _serialNumber = string.Empty;
     private string _licenseKey = string.Empty;
@@ -69,6 +84,10 @@ public class SettingsViewModel : BaseViewModel
         // Theme
         _selectedTheme = _settings.Get("theme", "Default");
         OnPropertyChanged(nameof(SelectedTheme));
+
+        // Currency
+        _selectedCurrency = _settings.Get("currency", "CNY");
+        OnPropertyChanged(nameof(SelectedCurrency));
 
         // License
         SerialNumber = _license.GetSerialNumber();

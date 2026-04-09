@@ -985,6 +985,17 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- ===== Currency ===== -->
+                            <Border CornerRadius="8" Padding="20"
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                                <StackPanel Spacing="12">
+                                    <TextBlock x:Name="SettingsCurrencyLabel" Text="Currency" FontSize="16" FontWeight="SemiBold"/>
+                                    <ComboBox x:Name="SettingsCurrency" Width="200"
+                                              SelectionChanged="CurrencyChanged"/>
+                                </StackPanel>
+                            </Border>
+
                             <!-- ===== UI Text Customization ===== -->
                             <Border CornerRadius="8" Padding="20"
                                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"

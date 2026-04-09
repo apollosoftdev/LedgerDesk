@@ -13,6 +13,14 @@ public partial class App : Application
     public static AuthService Auth { get; private set; } = null!;
     public static LocalizationService Localization { get; private set; } = null!;
 
+    public static string CurrencySymbol { get; set; } = "¥";
+
+    public static readonly Dictionary<string, string> SupportedCurrencies = new()
+    {
+        { "CNY", "¥" },
+        { "USD", "$" },
+    };
+
     public App()
     {
     }
@@ -25,6 +33,9 @@ public partial class App : Application
         Auth = new AuthService(Database);
         Localization = new LocalizationService(Database);
         Localization.Initialize(Settings.Get("language", "en"));
+
+        var currency = Settings.Get("currency", "CNY");
+        CurrencySymbol = SupportedCurrencies.GetValueOrDefault(currency, "¥");
 
         _window = new MainWindow();
         _window.Activate();

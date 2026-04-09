@@ -382,6 +382,20 @@ public sealed partial class MainWindow : Window
                 SettingsLanguage.SelectedItem = item;
         }
 
+        // Currency selector
+        SettingsCurrency.Items.Clear();
+        foreach (var kvp in App.SupportedCurrencies)
+        {
+            var item = new ComboBoxItem
+            {
+                Content = $"{kvp.Key} ({kvp.Value})",
+                Tag = kvp.Key,
+            };
+            SettingsCurrency.Items.Add(item);
+            if (kvp.Key == _settingsViewModel.SelectedCurrency)
+                SettingsCurrency.SelectedItem = item;
+        }
+
         // Text customization list
         LoadTextCustomizationList();
 
@@ -979,6 +993,13 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void CurrencyChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SettingsCurrency.SelectedItem is not ComboBoxItem item) return;
+        var currency = item.Tag?.ToString() ?? "CNY";
+        _settingsViewModel.SelectedCurrency = currency;
+    }
+
     private void TextOverride_LostFocus(object sender, RoutedEventArgs e)
     {
         if (sender is not TextBox tb || tb.Tag is not string key) return;
@@ -1100,6 +1121,7 @@ public sealed partial class MainWindow : Window
         ThemeLight.Content = l.Get("settings.theme_light");
         ThemeDark.Content = l.Get("settings.theme_dark");
         SettingsLanguageLabel.Text = l.Get("settings.language");
+        SettingsCurrencyLabel.Text = l.Get("settings.currency");
         SettingsTextCustomLabel.Text = l.Get("settings.text_customization");
         SettingsTextResetButton.Content = l.Get("settings.text_reset");
         SettingsLicenseLabel.Text = l.Get("settings.license");

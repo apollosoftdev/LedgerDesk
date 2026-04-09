@@ -101,7 +101,7 @@ public class Record : INotifyPropertyChanged
     public string PaymentTypeDisplay => PaymentType == 1 ? "Expense" : "Income";
 
     // Computed display properties
-    public string AmountDisplay => IsExpense ? $"-${Math.Abs(Amount):N2}" : $"+${Amount:N2}";
+    public string AmountDisplay => IsExpense ? $"-{App.CurrencySymbol}{Math.Abs(Amount):N2}" : $"+{App.CurrencySymbol}{Amount:N2}";
     public string DateDisplay => Date.ToString("yyyy-MM-dd");
 
     public event PropertyChangedEventHandler? PropertyChanged;

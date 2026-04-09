@@ -13,9 +13,9 @@ public class DashboardViewModel : BaseViewModel
     private Record? _selectedRecord;
     private string _sidePanelMode = "None"; // None, Add, Edit
     private int _totalRecords;
-    private string _totalIncome = "$0.00";
-    private string _totalExpense = "$0.00";
-    private string _balance = "$0.00";
+    private string _totalIncome = "¥0.00";
+    private string _totalExpense = "¥0.00";
+    private string _balance = "¥0.00";
     private string _statusText = "";
     private bool _hasRecords;
 
@@ -196,9 +196,10 @@ public class DashboardViewModel : BaseViewModel
         var expense = allRecords.Where(r => r.Amount < 0).Sum(r => Math.Abs(r.Amount));
         var balance = allRecords.Sum(r => r.Amount);
 
-        TotalIncome = $"${income:N2}";
-        TotalExpense = $"${expense:N2}";
-        Balance = $"${balance:N2}";
+        var sym = App.CurrencySymbol;
+        TotalIncome = $"{sym}{income:N2}";
+        TotalExpense = $"{sym}{expense:N2}";
+        Balance = $"{sym}{balance:N2}";
     }
 
     private void LoadCategories()
