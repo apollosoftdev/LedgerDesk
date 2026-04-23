@@ -46,19 +46,59 @@ export function BalanceChart({ data, granularity, onGranularityChange, width, he
       y: PAD.top + chartH - ((d.balance - min) / range) * chartH,
     }));
 
-    // Cardinal spline → cubic Bezier
-    const t = 0.2;
-    let line = `M${points[0].x},${points[0].y}`;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i - 1] ?? points[i];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[i + 2] ?? p2;
-      const cp1x = p1.x + (p2.x - p0.x) * t;
-      const cp1y = p1.y + (p2.y - p0.y) * t;
-      const cp2x = p2.x - (p3.x - p1.x) * t;
-      const cp2y = p2.y - (p3.y - p1.y) * t;
-      line += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+    // Monotone cubic interpolation (Fritsch-Carlson).
+    // Unlike a Cardinal spline, this guarantees the curve never overshoots
+    // beyond the data-point values — so a flat segment followed by a spike
+    // doesn't dip below the baseline on its way up.
+    const n = points.length;
+    const line = monotoneCubicPath(points);
+    function monotoneCubicPath(pts: { x: number; y: number }[]): string {
+      // Secant slopes
+      const dx: number[] = [];
+      const dy: number[] = [];
+      const dslope: number[] = [];
+      for (let i = 0; i < n - 1; i++) {
+        dx[i] = pts[i + 1].x - pts[i].x;
+        dy[i] = pts[i + 1].y - pts[i].y;
+        dslope[i] = dy[i] / dx[i];
+      }
+      // Tangents at each point
+      const m: number[] = new Array(n);
+      m[0] = dslope[0];
+      m[n - 1] = dslope[n - 2];
+      for (let i = 1; i < n - 1; i++) {
+        if (dslope[i - 1] * dslope[i] <= 0) {
+          m[i] = 0; // inflection → flat tangent (no overshoot)
+        } else {
+          m[i] = (dslope[i - 1] + dslope[i]) / 2;
+        }
+      }
+      // Fritsch-Carlson monotonicity enforcement
+      for (let i = 0; i < n - 1; i++) {
+        if (dslope[i] === 0) {
+          m[i] = 0;
+          m[i + 1] = 0;
+        } else {
+          const a = m[i] / dslope[i];
+          const b = m[i + 1] / dslope[i];
+          const s = a * a + b * b;
+          if (s > 9) {
+            const tau = 3 / Math.sqrt(s);
+            m[i] = tau * a * dslope[i];
+            m[i + 1] = tau * b * dslope[i];
+          }
+        }
+      }
+      let p = `M${pts[0].x},${pts[0].y}`;
+      for (let i = 0; i < n - 1; i++) {
+        const h = dx[i] / 3;
+        const c1x = pts[i].x + h;
+        const c1y = pts[i].y + m[i] * h;
+        const c2x = pts[i + 1].x - h;
+        const c2y = pts[i + 1].y - m[i + 1] * h;
+        p += ` C${c1x},${c1y} ${c2x},${c2y} ${pts[i + 1].x},${pts[i + 1].y}`;
+      }
+      return p;
     }
 
     const baselineY = PAD.top + chartH - ((0 - min) / range) * chartH;

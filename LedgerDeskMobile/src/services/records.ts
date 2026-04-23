@@ -174,7 +174,19 @@ export type TrendPoint = {
 };
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+/**
+ * Format a Date as YYYY-MM-DD using **local** components, not UTC.
+ * `toISOString()` converts to UTC which shifts the date by a day in non-UTC
+ * timezones — so the user's "today" disappears from the daily trend.
+ */
+export function localIsoDate(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+const iso = (d: Date) => localIsoDate(d);
 
 function startOfWeekMonday(d: Date): Date {
   const day = d.getDay();           // Sun=0..Sat=6

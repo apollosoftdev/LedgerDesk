@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Screen } from '../../../src/components/Screen';
 import { Header } from '../../../src/components/Header';
 import { Input } from '../../../src/components/Input';
+import { DateField } from '../../../src/components/DateField';
 import { Button } from '../../../src/components/Button';
 import { RecordRow } from '../../../src/components/RecordRow';
 import { useTheme } from '../../../src/theme/ThemeProvider';
@@ -118,8 +119,22 @@ export default function RecordsList() {
               <View style={{ flex: 1 }}><Input placeholder={t('filter.max_amount')} value={maxAmt} onChangeText={setMaxAmt} keyboardType="numeric" /></View>
             </View>
             <View style={{ flexDirection: 'row', gap: 10 }}>
-              <View style={{ flex: 1 }}><Input placeholder="YYYY-MM-DD" value={fromDate} onChangeText={setFromDate} /></View>
-              <View style={{ flex: 1 }}><Input placeholder="YYYY-MM-DD" value={toDate} onChangeText={setToDate} /></View>
+              <View style={{ flex: 1 }}>
+                <DateField
+                  label={t('filter.from_date')}
+                  value={fromDate}
+                  onChange={setFromDate}
+                  clearable
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <DateField
+                  label={t('filter.to_date')}
+                  value={toDate}
+                  onChange={setToDate}
+                  clearable
+                />
+              </View>
             </View>
             <Button title={t('filter.clear')} onPress={clearFilters} variant="text" fullWidth />
           </View>

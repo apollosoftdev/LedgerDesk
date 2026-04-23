@@ -286,7 +286,7 @@ export default function Settings() {
 
         {/* Data */}
         <Section title={t('settings.data_management')}>
-          <View style={{ gap: 8 }}>
+          <View style={[styles.groupCard, { backgroundColor: colors.surface }, shadow.sm]}>
             <Button title={t('settings.backup')} onPress={onBackup} loading={busyBackup} variant="contained" fullWidth />
             <Button title={t('settings.restore')} onPress={onRestore} loading={busyRestore} variant="outlined" fullWidth />
             <Button title={t('settings.backup_folder_reset_button')} onPress={onResetBackupFolder} variant="text" fullWidth />
@@ -359,6 +359,11 @@ const styles = StyleSheet.create({
   licenseBox: {
     padding: 16,
     borderRadius: radius.md,
+  },
+  groupCard: {
+    padding: 16,
+    borderRadius: radius.md,
+    gap: 8,
   },
   mono: {
     fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }),

@@ -8,12 +8,13 @@ import { useTranslation } from 'react-i18next';
 import { Screen } from '../../../src/components/Screen';
 import { Header } from '../../../src/components/Header';
 import { Input } from '../../../src/components/Input';
+import { DateField } from '../../../src/components/DateField';
 import { Button } from '../../../src/components/Button';
 import { useTheme } from '../../../src/theme/ThemeProvider';
 import { radius, spacing } from '../../../src/theme/tokens';
 import {
   addImage, addRecord, deleteImage, getImagesForRecord,
-  getRecordById, updateRecord,
+  getRecordById, localIsoDate, updateRecord,
 } from '../../../src/services/records';
 import { getAllCategories } from '../../../src/services/categories';
 import { captureFromCamera, deleteImageFile, pickFromLibrary } from '../../../src/services/images';
@@ -30,7 +31,7 @@ export default function RecordForm() {
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(localIsoDate());
   const [paymentType, setPaymentType] = useState<PaymentType>(1);
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -192,7 +193,7 @@ export default function RecordForm() {
               <Input label={t('form.amount_header')} placeholder="0.00" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
             </View>
             <View style={{ flex: 1 }}>
-              <Input label={t('form.date_header')} placeholder="YYYY-MM-DD" value={date} onChangeText={setDate} />
+              <DateField label={t('form.date_header')} value={date} onChange={setDate} />
             </View>
           </View>
 

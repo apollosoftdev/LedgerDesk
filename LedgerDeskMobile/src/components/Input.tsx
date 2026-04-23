@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     borderWidth: 1,
-    borderRadius: radius.xs,
+    borderRadius: radius.sm,  // matches Button radius for visual consistency
     paddingHorizontal: 14,
     paddingBottom: 14,
     fontSize: 15,

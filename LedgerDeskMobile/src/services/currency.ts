@@ -1,23 +1,19 @@
 import { getSetting, setSetting } from './settings';
 
 export const CURRENCIES = [
-  { code: 'USD', symbol: '$' },
-  { code: 'EUR', symbol: '€' },
-  { code: 'GBP', symbol: '£' },
-  { code: 'JPY', symbol: '¥' },
   { code: 'CNY', symbol: '¥' },
-  { code: 'KRW', symbol: '₩' },
-  { code: 'INR', symbol: '₹' },
+  { code: 'USD', symbol: '$' },
 ] as const;
 
 export type CurrencyCode = typeof CURRENCIES[number]['code'];
 
-let _current: { code: string; symbol: string } = { code: 'USD', symbol: '$' };
+const DEFAULT: { code: string; symbol: string } = { code: 'CNY', symbol: '¥' };
+let _current = { ...DEFAULT };
 
 export async function loadCurrency() {
-  const code = (await getSetting('currency_code')) ?? 'USD';
+  const code = (await getSetting('currency_code')) ?? DEFAULT.code;
   const found = CURRENCIES.find(c => c.code === code);
-  _current = found ? { code: found.code, symbol: found.symbol } : { code: 'USD', symbol: '$' };
+  _current = found ? { code: found.code, symbol: found.symbol } : { ...DEFAULT };
 }
 
 export function currentSymbol(): string {
