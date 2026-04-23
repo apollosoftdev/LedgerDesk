@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, ToastAndroid, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import * as Clipboard from 'expo-clipboard';
 import { Screen } from '../../src/components/Screen';
 import { Header } from '../../src/components/Header';
 import { Card } from '../../src/components/Card';
@@ -15,7 +16,8 @@ import {
   getAllCategories, reassignCategory,
 } from '../../src/services/categories';
 import { clearAllRecords } from '../../src/services/records';
-import { exportBackup, pickAndRestore } from '../../src/services/backup';
+import { exportBackup, pickAndRestore, resetBackupFolder } from '../../src/services/backup';
+import { deactivate as deactivateLicense, getSerialNumber, getStoredKey } from '../../src/services/license';
 import { CURRENCIES, currentCode, setCurrency, CurrencyCode } from '../../src/services/currency';
 import { changeLanguage, SUPPORTED_LANGS, SupportedLang } from '../../src/i18n';
 import i18n from '../../src/i18n';
@@ -36,8 +38,22 @@ export default function Settings() {
   const [lang, setLang] = useState<SupportedLang>(i18n.language as SupportedLang);
   const [currency, setCurrencyState] = useState<string>(currentCode());
 
+  const [sn, setSn] = useState('');
+  const [licenseKey, setLicenseKey] = useState('');
+
   const loadCats = async () => setCategories(await getAllCategories());
-  useEffect(() => { loadCats(); }, []);
+  const loadLicense = async () => {
+    setSn(await getSerialNumber());
+    setLicenseKey((await getStoredKey()) ?? '');
+  };
+  useEffect(() => { loadCats(); loadLicense(); }, []);
+
+  const copy = async (text: string) => {
+    await Clipboard.setStringAsync(text);
+    const msg = t('common.copied', { value: text });
+    if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
+    else Alert.alert(msg);
+  };
 
   const onChangePassword = async () => {
     if (!oldPw) { Alert.alert(t('settings.password_error_empty')); return; }
@@ -113,9 +129,19 @@ export default function Settings() {
   const onBackup = async () => {
     setBusyBackup(true);
     try {
-      await exportBackup();
+      const result = await exportBackup();
+      if (!result.ok) {
+        if (result.error !== 'cancelled') {
+          Alert.alert(t('settings.backup_failed'), result.error);
+        }
+        return;
+      }
+      Alert.alert(
+        t('settings.backup_done'),
+        t('settings.backup_saved_to', { filename: result.filename })
+      );
     } catch (e: any) {
-      Alert.alert('Backup failed', e?.message ?? 'Unknown error');
+      Alert.alert(t('settings.backup_failed'), e?.message ?? 'Unknown error');
     } finally {
       setBusyBackup(false);
     }
@@ -152,6 +178,25 @@ export default function Settings() {
   };
 
   const onLogout = () => { logout(); router.replace('/login'); };
+
+  const onDeactivate = () => {
+    Alert.alert(t('settings.deactivate_title'), t('settings.deactivate_confirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('settings.license_deactivate'), style: 'destructive',
+        onPress: async () => {
+          await deactivateLicense();
+          logout();
+          router.replace('/activation');
+        },
+      },
+    ]);
+  };
+
+  const onResetBackupFolder = async () => {
+    await resetBackupFolder();
+    Alert.alert(t('settings.backup_folder_reset'));
+  };
 
   return (
     <Screen>
@@ -222,8 +267,29 @@ export default function Settings() {
           <View style={{ gap: spacing.sm }}>
             <Button title={t('settings.backup')} onPress={onBackup} loading={busyBackup} fullWidth />
             <Button title={t('settings.restore')} onPress={onRestore} loading={busyRestore} variant="secondary" fullWidth />
+            <Button title={t('settings.backup_folder_reset_button')} onPress={onResetBackupFolder} variant="ghost" fullWidth />
             <Button title={t('settings.clear_records')} onPress={onClearRecords} variant="danger" fullWidth />
           </View>
+        </Section>
+
+        <Section title={t('settings.license')}>
+          <Text style={[typography.label, { color: colors.textMuted, marginBottom: spacing.xs }]}>
+            {t('settings.license_mac')}
+          </Text>
+          <Pressable onPress={() => copy(sn)}>
+            <Text style={[styles.mono, { color: colors.text, marginBottom: spacing.md }]} selectable>
+              {sn || '—'}
+            </Text>
+          </Pressable>
+          <Text style={[typography.label, { color: colors.textMuted, marginBottom: spacing.xs }]}>
+            {t('settings.license_key')}
+          </Text>
+          <Pressable onPress={() => copy(licenseKey)}>
+            <Text style={[styles.mono, { color: colors.text, marginBottom: spacing.md }]} selectable>
+              {licenseKey || '—'}
+            </Text>
+          </Pressable>
+          <Button title={t('settings.license_deactivate')} onPress={onDeactivate} variant="danger" fullWidth />
         </Section>
 
         <Button title={t('settings.logout')} onPress={onLogout} variant="ghost" fullWidth />
@@ -270,5 +336,11 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
     borderRadius: radius.pill, borderWidth: 1,
+  },
+  mono: {
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }),
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.8,
   },
 });

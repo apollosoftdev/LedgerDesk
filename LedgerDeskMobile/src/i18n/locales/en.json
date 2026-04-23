@@ -1,6 +1,19 @@
 {
   "app": { "title": "LedgerDesk" },
 
+  "activation": {
+    "title": "License Activation",
+    "subtitle": "Enter your license key to activate LedgerDesk.",
+    "mac_label": "Serial Number",
+    "key_header": "License Key",
+    "key_placeholder": "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
+    "challenge_label": "Code",
+    "button": "Activate",
+    "error_empty": "Please enter a license key.",
+    "error_invalid": "Invalid license key. Please check and try again.",
+    "help": "Give the Serial Number and Code above to your administrator. The Key Generator (Windows utility) will produce a matching License Key."
+  },
+
   "login": {
     "title_welcome": "Welcome Back",
     "title_setup": "Set Password",
@@ -125,6 +138,13 @@
     "clear_records_button": "Clear All",
     "clear_records_confirm": "Delete all transaction records? This cannot be undone.",
     "backup": "Backup to File",
+    "backup_done": "Backup saved",
+    "backup_failed": "Backup failed",
+    "backup_saved_to": "Saved as {{filename}}",
+    "backup_pick_folder_title": "Choose Backup Folder",
+    "backup_pick_folder_msg": "Pick a folder where LedgerDesk backups will be saved (e.g., Downloads).",
+    "backup_folder_reset_button": "Change Backup Folder",
+    "backup_folder_reset": "Backup folder cleared. You'll be asked to pick a new one next time.",
     "restore": "Restore from Backup",
     "restore_title": "Restore Backup",
     "restore_confirm": "Restoring will REPLACE all current records, categories, images, and settings with the contents of the backup file. This cannot be undone. Continue?",
@@ -132,6 +152,12 @@
     "restore_done": "Restore complete",
     "restore_failed": "Restore failed",
     "restore_summary": "Imported {{records}} records, {{categories}} categories, {{images}} images.",
+    "license": "License Info",
+    "license_mac": "Serial Number",
+    "license_key": "License Key",
+    "license_deactivate": "Deactivate License",
+    "deactivate_title": "Deactivate License",
+    "deactivate_confirm": "This will lock the app until a new license key is entered. Continue?",
     "reset_app": "Reset App",
     "reset_app_title": "Reset App",
     "reset_app_confirm": "This will delete ALL data (records, categories, settings, password) and reset the app. This cannot be undone.",

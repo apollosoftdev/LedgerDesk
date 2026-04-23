@@ -1,11 +1,13 @@
 import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
+import { Platform } from 'react-native';
 import { getDb } from './db';
+import { deleteSetting, getSetting, setSetting } from './settings';
 
 const BACKUP_VERSION = 1;
 const APP_TAG = 'LedgerDeskMobile';
 const IMAGE_DIR = `${FileSystem.documentDirectory}record-images/`;
+const BACKUP_DIR_SETTING = 'backup_dir_uri';
 
 type RecordRow = {
   Id: number; Title: string; Category: string; Description: string;
@@ -31,6 +33,14 @@ function guessExt(uri: string): string {
   return m?.[1]?.toLowerCase() ?? 'jpg';
 }
 
+function pad(n: number): string { return n.toString().padStart(2, '0'); }
+
+function timestampedFilename(): string {
+  const d = new Date();
+  const ts = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+  return `ledgerdesk-backup-${ts}.json`;
+}
+
 async function ensureImageDir() {
   const info = await FileSystem.getInfoAsync(IMAGE_DIR);
   if (!info.exists) {
@@ -38,7 +48,7 @@ async function ensureImageDir() {
   }
 }
 
-export async function exportBackup(): Promise<string> {
+async function gatherBackupPayload(): Promise<BackupFile> {
   const db = await getDb();
 
   const records = await db.getAllAsync<RecordRow>(
@@ -69,32 +79,70 @@ export async function exportBackup(): Promise<string> {
         ext: guessExt(row.Uri),
       });
     } catch {
-      // skip unreadable image
+      // skip unreadable images
     }
   }
 
-  const backup: BackupFile = {
+  return {
     version: BACKUP_VERSION,
     app: APP_TAG,
     exportedAt: new Date().toISOString(),
     records, categories, images, settings,
   };
+}
 
-  const filename = `ledgerdesk-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-  const path = `${FileSystem.cacheDirectory}${filename}`;
-  await FileSystem.writeAsStringAsync(path, JSON.stringify(backup), {
-    encoding: FileSystem.EncodingType.UTF8,
-  });
+export type ExportResult =
+  | { ok: true; filename: string; uri: string }
+  | { ok: false; error: string };
 
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(path, {
-      mimeType: 'application/json',
-      dialogTitle: 'LedgerDesk Backup',
-      UTI: 'public.json',
+/**
+ * Saves a backup into a user-chosen folder.
+ *
+ * On Android the folder is picked once via Storage Access Framework (SAF);
+ * the granted directory URI is persisted so subsequent backups are one-tap.
+ *
+ * Filename: `ledgerdesk-backup-YYYY-MM-DD_HH-mm-ss.json`.
+ */
+export async function exportBackup(): Promise<ExportResult> {
+  const payload = await gatherBackupPayload();
+  const filename = timestampedFilename();
+  const json = JSON.stringify(payload);
+
+  if (Platform.OS !== 'android') {
+    // iOS/other: write into app documents. Caller can surface via Share if desired.
+    const dest = `${FileSystem.documentDirectory}${filename}`;
+    await FileSystem.writeAsStringAsync(dest, json, {
+      encoding: FileSystem.EncodingType.UTF8,
     });
+    return { ok: true, filename, uri: dest };
   }
 
-  return path;
+  const SAF = FileSystem.StorageAccessFramework;
+
+  let dirUri = await getSetting(BACKUP_DIR_SETTING);
+  if (!dirUri) {
+    const perm = await SAF.requestDirectoryPermissionsAsync();
+    if (!perm.granted) return { ok: false, error: 'cancelled' };
+    dirUri = perm.directoryUri;
+    await setSetting(BACKUP_DIR_SETTING, dirUri);
+  }
+
+  try {
+    const fileUri = await SAF.createFileAsync(dirUri, filename, 'application/json');
+    await SAF.writeAsStringAsync(fileUri, json, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+    return { ok: true, filename, uri: fileUri };
+  } catch (e: any) {
+    // Stored directory URI may have been revoked (folder deleted, SD card removed).
+    // Clear it so the next attempt re-prompts the user.
+    await deleteSetting(BACKUP_DIR_SETTING);
+    return { ok: false, error: e?.message ?? 'Could not write backup file.' };
+  }
+}
+
+export async function resetBackupFolder(): Promise<void> {
+  await deleteSetting(BACKUP_DIR_SETTING);
 }
 
 export type RestoreResult = {
@@ -115,7 +163,7 @@ export async function pickAndRestore(): Promise<RestoreResult> {
   try {
     const raw = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.UTF8 });
     parsed = JSON.parse(raw);
-  } catch (e: any) {
+  } catch {
     return { ok: false, error: 'Could not read backup file.' };
   }
 
@@ -131,7 +179,6 @@ export async function pickAndRestore(): Promise<RestoreResult> {
 
   await db.execAsync('BEGIN TRANSACTION');
   try {
-    // Wipe existing data
     await db.execAsync(`
       DELETE FROM RecordImages;
       DELETE FROM Records;
@@ -139,7 +186,6 @@ export async function pickAndRestore(): Promise<RestoreResult> {
       DELETE FROM AppSettings;
     `);
 
-    // Clear on-disk image files from old state
     try {
       const files = await FileSystem.readDirectoryAsync(IMAGE_DIR);
       for (const f of files) {
@@ -147,7 +193,6 @@ export async function pickAndRestore(): Promise<RestoreResult> {
       }
     } catch { /* ignore */ }
 
-    // Restore categories
     for (const c of parsed.categories ?? []) {
       await db.runAsync(
         'INSERT INTO Categories (Id, Name, SortOrder) VALUES (?, ?, ?)',
@@ -155,7 +200,6 @@ export async function pickAndRestore(): Promise<RestoreResult> {
       );
     }
 
-    // Restore records (keep original IDs so images can link)
     for (const r of parsed.records ?? []) {
       await db.runAsync(
         `INSERT INTO Records (Id, Title, Category, Description, Amount, PaymentType, Date, CreatedAt, UpdatedAt)
@@ -165,7 +209,6 @@ export async function pickAndRestore(): Promise<RestoreResult> {
       );
     }
 
-    // Restore images: write base64 back to disk, insert row with new URI
     for (let i = 0; i < (parsed.images ?? []).length; i++) {
       const img = parsed.images[i];
       const filename = `${Date.now()}-${i}.${img.ext || 'jpg'}`;
@@ -179,7 +222,6 @@ export async function pickAndRestore(): Promise<RestoreResult> {
       );
     }
 
-    // Restore settings
     for (const s of parsed.settings ?? []) {
       await db.runAsync(
         'INSERT INTO AppSettings (Key, Value) VALUES (?, ?)',
