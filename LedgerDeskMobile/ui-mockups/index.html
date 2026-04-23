@@ -687,31 +687,92 @@ body {
   background: var(--surface-2);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-1);
-  padding: 12px 12px 8px;
+  padding: 12px 12px 10px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
-.chart-card svg { display: block; }
-.chart-card .chart-stats {
-  position: absolute;
-  top: 14px;
-  left: 20px;
+.chart-card svg { display: block; overflow: visible; }
+
+/* Header row: range chips on the left, stats on the right */
+.chart-header {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  padding: 0 4px 10px;
+}
+.range-group {
+  display: inline-flex;
+  background: var(--surface-3);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 0;
+}
+.range-chip {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--ff);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  height: 24px;
+  min-width: 28px;
+}
+.range-chip.active {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-1);
+}
+.chart-stats-inline {
+  display: flex;
+  gap: 12px;
   font-size: 10px;
 }
-.chart-card .chart-stats .k { color: var(--text-muted); font-weight: 500; margin-right: 4px; }
-.chart-card .chart-stats .v { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
-.chart-card .chart-x {
+.chart-stats-inline .k { color: var(--text-muted); font-weight: 500; margin-right: 3px; }
+.chart-stats-inline .v { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* X-axis labels — evenly distributed */
+.chart-x {
   display: flex;
   justify-content: space-between;
-  padding: 0 6px 4px;
+  padding: 0 10px;
   font-size: 10px;
   color: var(--text-dim);
   font-weight: 500;
-  margin-top: -4px;
+  margin-top: 4px;
 }
+
+/* Tooltip (shown when user drags finger on the chart) */
+.chart-tooltip {
+  position: absolute;
+  background: var(--surface-3);
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-shadow: var(--shadow-2);
+  font-size: 11px;
+  line-height: 1.35;
+  /* Anchor bottom-center of tooltip at the (left, top) coordinate */
+  transform: translate(-50%, calc(-100% - 8px));
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 5;
+}
+.chart-tooltip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--surface-3);
+  box-shadow: var(--shadow-1);
+}
+.chart-tooltip .tt-date { color: var(--text-muted); font-size: 10px; font-weight: 500; }
+.chart-tooltip .tt-val  { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
 .see-all-link {
   display: block;
   text-align: center;
@@ -1293,32 +1354,60 @@ body {
 
         <div class="section-head">
           <h3>Balance trend</h3>
-          <span style="font-size:12px; color: var(--text-muted);">Last 30 days</span>
+          <span style="font-size:12px; color: var(--text-muted);">Apr 2026</span>
         </div>
 
         <div class="chart-card">
-          <div class="chart-stats">
-            <span><span class="k">Low</span><span class="v">$9,120.00</span></span>
-            <span><span class="k">High</span><span class="v">$13,082.00</span></span>
+          <div class="chart-header">
+            <div class="range-group">
+              <button class="range-chip">D</button>
+              <button class="range-chip active">W</button>
+              <button class="range-chip">M</button>
+              <button class="range-chip">Y</button>
+            </div>
+            <div class="chart-stats-inline">
+              <span><span class="k">Low</span><span class="v">$9,120</span></span>
+              <span><span class="k">High</span><span class="v">$13,082</span></span>
+            </div>
           </div>
-          <svg viewBox="0 0 288 180" width="100%" height="180" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="balFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#1877F2" stop-opacity="0.28"/>
-                <stop offset="1" stop-color="#1877F2" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <!-- baseline -->
-            <line x1="12" y1="128" x2="276" y2="128" stroke="rgba(145,158,171,0.18)" stroke-width="1" stroke-dasharray="3 4"/>
-            <!-- fill -->
-            <path fill="url(#balFill)"
-              d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36 L276,156 L12,156 Z"/>
-            <!-- line -->
-            <path fill="none" stroke="#1877F2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-              d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36"/>
-          </svg>
+
+          <div style="position: relative;">
+            <svg viewBox="0 0 288 180" width="100%" height="180" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="balFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#1877F2" stop-opacity="0.28"/>
+                  <stop offset="1" stop-color="#1877F2" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <!-- baseline (zero) -->
+              <line x1="12" y1="150" x2="276" y2="150" stroke="rgba(145,158,171,0.18)" stroke-width="1" stroke-dasharray="3 4"/>
+              <!-- fill -->
+              <path fill="url(#balFill)"
+                d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36 L276,170 L12,170 Z"/>
+              <!-- line -->
+              <path fill="none" stroke="#1877F2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36"/>
+              <!-- vertical indicator at touched point (~ index 5 of 7 weeks) -->
+              <line x1="200" y1="16" x2="200" y2="170" stroke="rgba(145,158,171,0.45)" stroke-width="1"/>
+              <!-- touched dot -->
+              <circle cx="200" cy="58" r="8" fill="#1877F2" fill-opacity="0.22"/>
+              <circle cx="200" cy="58" r="4" fill="#1877F2" stroke="#fff" stroke-width="2"/>
+            </svg>
+
+            <!-- floating tooltip above the dot.
+                 Dot svg-coord (200, 58); svg viewBox width 288, height 180px.
+                 → left = 200/288 ≈ 69.44%, top = 58px (same pixel scale as svg height). -->
+            <div class="chart-tooltip" style="left: 69.44%; top: 58px;">
+              <div class="tt-date">Apr 15 – Apr 21</div>
+              <div class="tt-val">$11,450.00</div>
+            </div>
+          </div>
+
           <div class="chart-x">
-            <span>Mar 24</span>
+            <span>Mar 4</span>
+            <span>Mar 18</span>
+            <span>Apr 1</span>
+            <span>Apr 15</span>
             <span>Apr 22</span>
           </div>
         </div>
@@ -1675,29 +1764,52 @@ body {
 
         <div class="section-head">
           <h3>Balance trend</h3>
-          <span style="font-size:12px; color: var(--text-muted);">Last 30 days</span>
+          <span style="font-size:12px; color: var(--text-muted);">Apr 2026</span>
         </div>
 
         <div class="chart-card">
-          <div class="chart-stats">
-            <span><span class="k">Low</span><span class="v">$9,120.00</span></span>
-            <span><span class="k">High</span><span class="v">$13,082.00</span></span>
+          <div class="chart-header">
+            <div class="range-group">
+              <button class="range-chip">D</button>
+              <button class="range-chip active">W</button>
+              <button class="range-chip">M</button>
+              <button class="range-chip">Y</button>
+            </div>
+            <div class="chart-stats-inline">
+              <span><span class="k">Low</span><span class="v">$9,120</span></span>
+              <span><span class="k">High</span><span class="v">$13,082</span></span>
+            </div>
           </div>
-          <svg viewBox="0 0 288 180" width="100%" height="180" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="balFillLight" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#1877F2" stop-opacity="0.22"/>
-                <stop offset="1" stop-color="#1877F2" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <line x1="12" y1="128" x2="276" y2="128" stroke="rgba(145,158,171,0.26)" stroke-width="1" stroke-dasharray="3 4"/>
-            <path fill="url(#balFillLight)"
-              d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36 L276,156 L12,156 Z"/>
-            <path fill="none" stroke="#1877F2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-              d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36"/>
-          </svg>
+
+          <div style="position: relative;">
+            <svg viewBox="0 0 288 180" width="100%" height="180" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="balFillLight" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#1877F2" stop-opacity="0.22"/>
+                  <stop offset="1" stop-color="#1877F2" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line x1="12" y1="150" x2="276" y2="150" stroke="rgba(145,158,171,0.26)" stroke-width="1" stroke-dasharray="3 4"/>
+              <path fill="url(#balFillLight)"
+                d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36 L276,170 L12,170 Z"/>
+              <path fill="none" stroke="#1877F2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36"/>
+              <line x1="200" y1="16" x2="200" y2="170" stroke="rgba(145,158,171,0.55)" stroke-width="1"/>
+              <circle cx="200" cy="58" r="8" fill="#1877F2" fill-opacity="0.16"/>
+              <circle cx="200" cy="58" r="4" fill="#1877F2" stroke="#fff" stroke-width="2"/>
+            </svg>
+
+            <div class="chart-tooltip" style="left: 69.44%; top: 58px;">
+              <div class="tt-date">Apr 15 – Apr 21</div>
+              <div class="tt-val">$11,450.00</div>
+            </div>
+          </div>
+
           <div class="chart-x">
-            <span>Mar 24</span>
+            <span>Mar 4</span>
+            <span>Mar 18</span>
+            <span>Apr 1</span>
+            <span>Apr 15</span>
             <span>Apr 22</span>
           </div>
         </div>
