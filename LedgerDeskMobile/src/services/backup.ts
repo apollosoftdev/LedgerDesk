@@ -38,7 +38,7 @@ function pad(n: number): string { return n.toString().padStart(2, '0'); }
 function timestampedFilename(): string {
   const d = new Date();
   const ts = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
-  return `ledgerdesk-backup-${ts}.json`;
+  return `ledgerdesk-backup-${ts}.bak`;
 }
 
 async function ensureImageDir() {
@@ -128,7 +128,9 @@ export async function exportBackup(): Promise<ExportResult> {
   }
 
   try {
-    const fileUri = await SAF.createFileAsync(dirUri, filename, 'application/json');
+    // MIME octet-stream prevents Android SAF from auto-appending .json or
+    // renaming the file. Content is still JSON; we validate on restore.
+    const fileUri = await SAF.createFileAsync(dirUri, filename, 'application/octet-stream');
     await SAF.writeAsStringAsync(fileUri, json, {
       encoding: FileSystem.EncodingType.UTF8,
     });
