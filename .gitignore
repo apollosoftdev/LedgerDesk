@@ -63,3 +63,21 @@ Desktop.ini
 *.db
 *.db-shm
 *.db-wal
+
+node_modules/
+.expo/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+.DS_Store
+.env
+.env.local
+
+# EAS
+.easignore

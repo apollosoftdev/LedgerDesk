@@ -1,0 +1,167 @@
+{
+  "app": { "title": "LedgerDesk" },
+
+  "login": {
+    "title_welcome": "Welcome Back",
+    "title_setup": "Set Password",
+    "subtitle_login": "Enter your password to continue",
+    "subtitle_setup": "Create a password to protect your data",
+    "password_header": "Password",
+    "password_placeholder": "Enter password",
+    "confirm_header": "Confirm Password",
+    "confirm_placeholder": "Re-enter password",
+    "button_login": "Login",
+    "button_setup": "Set Password",
+    "error_empty": "Please enter a password.",
+    "error_short": "Password must be at least 4 characters.",
+    "error_mismatch": "Passwords do not match.",
+    "error_wrong": "Incorrect password."
+  },
+
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Transaction history overview",
+    "stat_total": "Total Records",
+    "stat_income": "Total Income",
+    "stat_expense": "Total Expense",
+    "stat_balance": "Balance"
+  },
+
+  "record": {
+    "new_button": "New Record",
+    "refresh": "Refresh",
+    "settings": "Settings",
+    "list_title": "Records"
+  },
+
+  "table": {
+    "date": "DATE",
+    "payment_type": "PAYMENT TYPE",
+    "title": "TITLE",
+    "category": "CATEGORY",
+    "amount": "AMOUNT"
+  },
+
+  "filter": {
+    "search_title": "Search title...",
+    "all_categories": "All Categories",
+    "search_desc": "Search description...",
+    "min_amount": "Min amount",
+    "max_amount": "Max amount",
+    "from_date": "From date",
+    "to_date": "To date",
+    "clear": "Clear",
+    "filters": "Filters"
+  },
+
+  "empty": {
+    "title": "No records yet",
+    "subtitle": "Tap 'New Record' to add your first transaction"
+  },
+
+  "form": {
+    "new_title": "New Record",
+    "edit_title": "Edit Record",
+    "image_add": "Add Image",
+    "image_gallery": "From Gallery",
+    "image_camera": "Take Photo",
+    "title_header": "Title",
+    "title_placeholder": "e.g. Office Supplies",
+    "category_header": "Category",
+    "category_placeholder": "Select or type...",
+    "amount_header": "Amount",
+    "date_header": "Date",
+    "date_placeholder": "Select date",
+    "desc_header": "Description",
+    "desc_placeholder": "Add details...",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+
+  "detail": {
+    "title": "Record Detail",
+    "amount_label": "Amount",
+    "desc_label": "Description",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+
+  "delete": {
+    "title": "Delete Record",
+    "confirm": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
+    "button": "Delete",
+    "cancel": "Cancel"
+  },
+
+  "settings": {
+    "title": "Settings",
+    "back": "Back",
+    "security": "Security",
+    "old_password": "Current Password",
+    "old_password_placeholder": "Enter current password",
+    "new_password": "New Password",
+    "new_password_placeholder": "Enter new password",
+    "confirm_password": "Confirm New Password",
+    "confirm_password_placeholder": "Re-enter new password",
+    "change_password": "Change Password",
+    "password_changed": "Password changed successfully.",
+    "password_error_empty": "Enter your current password.",
+    "password_error_short": "New password must be at least 4 characters.",
+    "password_error_mismatch": "New passwords do not match.",
+    "password_error_wrong": "Current password is incorrect.",
+    "categories": "Categories",
+    "new_category_placeholder": "New category name",
+    "add_category": "Add",
+    "delete_category": "Delete category",
+    "theme": "Theme",
+    "theme_default": "System Default",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "language": "Language",
+    "currency": "Currency",
+    "data_management": "Data Management",
+    "clear_records": "Clear All Records",
+    "clear_records_title": "Clear All Records",
+    "clear_records_button": "Clear All",
+    "clear_records_confirm": "Delete all transaction records? This cannot be undone.",
+    "backup": "Backup to File",
+    "restore": "Restore from Backup",
+    "restore_title": "Restore Backup",
+    "restore_confirm": "Restoring will REPLACE all current records, categories, images, and settings with the contents of the backup file. This cannot be undone. Continue?",
+    "restore_button": "Restore",
+    "restore_done": "Restore complete",
+    "restore_failed": "Restore failed",
+    "restore_summary": "Imported {{records}} records, {{categories}} categories, {{images}} images.",
+    "reset_app": "Reset App",
+    "reset_app_title": "Reset App",
+    "reset_app_confirm": "This will delete ALL data (records, categories, settings, password) and reset the app. This cannot be undone.",
+    "reset_app_button": "Reset Everything",
+    "logout": "Log Out"
+  },
+
+  "category": {
+    "delete_title": "Delete Category",
+    "delete_confirm": "Delete \"{{name}}\"?",
+    "delete_reassign": "\"{{name}}\" has {{count}} record(s). Reassign them to:",
+    "delete_button": "Delete & Reassign",
+    "cannot_delete": "Cannot Delete",
+    "cannot_delete_msg": "Cannot delete \"{{name}}\" — it has {{count}} records and no other categories exist."
+  },
+
+  "payment": {
+    "income": "Income",
+    "expense": "Expense",
+    "type_label": "Payment Type",
+    "all": "All Types"
+  },
+
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "copied": "Copied: {{value}}"
+  }
+}
