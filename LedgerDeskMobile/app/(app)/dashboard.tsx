@@ -12,17 +12,24 @@ import { BalanceChart } from '../../src/components/BalanceChart';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { radius, shadow, spacing } from '../../src/theme/tokens';
 import { getBalanceTrend, getStats } from '../../src/services/records';
+import type { TrendGranularity, TrendPoint } from '../../src/services/records';
 import { formatBalance } from '../../src/services/currency';
 
 type Stats = { total: number; income: number; expense: number; balance: number };
 
-type TrendPoint = { date: string; balance: number };
+const GRANULARITY_COUNT: Record<TrendGranularity, number> = {
+  day: 30,
+  week: 12,
+  month: 12,
+  year: 5,
+};
 
 export default function Dashboard() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const [stats, setStats] = useState<Stats>({ total: 0, income: 0, expense: 0, balance: 0 });
+  const [granularity, setGranularity] = useState<TrendGranularity>('day');
   const [trend, setTrend] = useState<TrendPoint[]>([]);
   const screenW = Dimensions.get('window').width;
 
@@ -30,9 +37,9 @@ export default function Dashboard() {
     useCallback(() => {
       (async () => {
         setStats(await getStats());
-        setTrend(await getBalanceTrend(30));
+        setTrend(await getBalanceTrend(granularity, GRANULARITY_COUNT[granularity]));
       })();
-    }, [])
+    }, [granularity])
   );
 
   const copy = async (raw: number | string) => {
@@ -101,13 +108,16 @@ export default function Dashboard() {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Balance trend
           </Text>
-          <Text style={{ color: colors.textMuted, fontSize: 12 }}>
-            Last 30 days
-          </Text>
         </View>
 
-        <View style={[styles.chartCard, shadow.sm]}>
-          <BalanceChart data={trend} width={screenW - 32} height={200} />
+        <View style={styles.chartWrap}>
+          <BalanceChart
+            data={trend}
+            granularity={granularity}
+            onGranularityChange={setGranularity}
+            width={screenW - 32}
+            height={210}
+          />
         </View>
 
         <Pressable onPress={() => router.push('/(app)/records')} style={styles.seeAllLink}>
@@ -187,10 +197,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: -0.2,
   },
-  chartCard: {
+  chartWrap: {
     marginHorizontal: 16,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
   },
   seeAllLink: {
     alignSelf: 'center',

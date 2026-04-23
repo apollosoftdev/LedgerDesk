@@ -164,11 +164,35 @@ export async function clearAllRecords(): Promise<void> {
   await db.execAsync('DELETE FROM RecordImages; DELETE FROM Records;');
 }
 
+export type TrendGranularity = 'day' | 'week' | 'month' | 'year';
+
+export type TrendPoint = {
+  date: string;   // ISO YYYY-MM-DD of the bucket's end
+  label: string;  // short axis label ("Apr 22", "Apr", "2024")
+  tooltip: string; // verbose label for tooltip ("Apr 15 – Apr 21, 2026", "April 2026", "2024")
+  balance: number; // cumulative running balance at end of bucket
+};
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+function startOfWeekMonday(d: Date): Date {
+  const day = d.getDay();           // Sun=0..Sat=6
+  const offset = (day + 6) % 7;     // days since Monday
+  const m = new Date(d);
+  m.setDate(d.getDate() - offset);
+  m.setHours(0, 0, 0, 0);
+  return m;
+}
+
 /**
- * Returns cumulative running balance per day for the last `days` days
- * (inclusive of today). Used for the dashboard trend chart.
+ * Returns N buckets of cumulative running balance, ending with the
+ * bucket that contains today. Each bucket's width depends on granularity.
  */
-export async function getBalanceTrend(days = 30): Promise<{ date: string; balance: number }[]> {
+export async function getBalanceTrend(
+  granularity: TrendGranularity,
+  count: number
+): Promise<TrendPoint[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<{ Date: string; Amount: number; PaymentType: number }>(
     'SELECT Date, Amount, PaymentType FROM Records ORDER BY Date ASC'
@@ -181,25 +205,63 @@ export async function getBalanceTrend(days = 30): Promise<{ date: string; balanc
   }
 
   const today = new Date();
-  const start = new Date(today);
-  start.setDate(today.getDate() - days + 1);
+  today.setHours(0, 0, 0, 0);
 
-  const iso = (d: Date) => d.toISOString().slice(0, 10);
-  const startStr = iso(start);
+  // Build N buckets ending with the bucket containing today.
+  const buckets: { startISO: string; endISO: string; label: string; tooltip: string }[] = [];
 
-  // Seed balance = sum of changes before the window
-  let balance = 0;
-  for (const [date, change] of Object.entries(dailyChange)) {
-    if (date < startStr) balance += change;
+  if (granularity === 'day') {
+    for (let i = count - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const s = iso(d);
+      const label = `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+      const tooltip = `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+      buckets.push({ startISO: s, endISO: s, label, tooltip });
+    }
+  } else if (granularity === 'week') {
+    const thisMonday = startOfWeekMonday(today);
+    for (let i = count - 1; i >= 0; i--) {
+      const start = new Date(thisMonday);
+      start.setDate(thisMonday.getDate() - i * 7);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      const label = `${MONTHS[start.getMonth()]} ${start.getDate()}`;
+      const tooltip = `${MONTHS[start.getMonth()]} ${start.getDate()} – ${MONTHS[end.getMonth()]} ${end.getDate()}, ${end.getFullYear()}`;
+      buckets.push({ startISO: iso(start), endISO: iso(end), label, tooltip });
+    }
+  } else if (granularity === 'month') {
+    const curY = today.getFullYear();
+    const curM = today.getMonth();
+    for (let i = count - 1; i >= 0; i--) {
+      const start = new Date(curY, curM - i, 1);
+      const end = new Date(start.getFullYear(), start.getMonth() + 1, 0); // last day of month
+      const label = MONTHS[start.getMonth()];
+      const tooltip = `${MONTHS[start.getMonth()]} ${start.getFullYear()}`;
+      buckets.push({ startISO: iso(start), endISO: iso(end), label, tooltip });
+    }
+  } else {
+    for (let i = count - 1; i >= 0; i--) {
+      const year = today.getFullYear() - i;
+      const start = new Date(year, 0, 1);
+      const end = new Date(year, 11, 31);
+      buckets.push({ startISO: iso(start), endISO: iso(end), label: String(year), tooltip: String(year) });
+    }
   }
 
-  const out: { date: string; balance: number }[] = [];
-  for (let i = 0; i < days; i++) {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
-    const s = iso(d);
-    balance += dailyChange[s] ?? 0;
-    out.push({ date: s, balance });
+  // Seed balance = sum of daily changes before the first bucket.
+  const firstStart = buckets[0].startISO;
+  let cumulative = 0;
+  for (const [date, change] of Object.entries(dailyChange)) {
+    if (date < firstStart) cumulative += change;
+  }
+
+  const out: TrendPoint[] = [];
+  for (const b of buckets) {
+    for (const [date, change] of Object.entries(dailyChange)) {
+      if (date >= b.startISO && date <= b.endISO) cumulative += change;
+    }
+    out.push({ date: b.endISO, label: b.label, tooltip: b.tooltip, balance: cumulative });
   }
   return out;
 }
