@@ -36,7 +36,8 @@
           "cameraPermission": "LedgerDesk needs access to your camera to capture receipt images."
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
