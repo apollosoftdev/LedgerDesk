@@ -12,14 +12,27 @@ type Props = TextInputProps & {
  * MUI-style outlined TextField.
  * Label sits at the top-left of the border (floating style).
  * Border + label both color to primary when focused, to error on validation.
+ *
+ * Placeholder-vs-label rule (matches Material UI):
+ *   - Empty + unfocused  → label sits in the input, placeholder hidden
+ *   - Focused            → label floats up to the border, placeholder appears
+ *   - Has a value        → label floats up, value fills the input
+ *
+ * Without this rule, an empty unfocused input would show both the label and
+ * the placeholder stacked on top of each other.
  */
-export function Input({ label, error, style, onFocus, onBlur, value, multiline, ...rest }: Props) {
+export function Input({
+  label, error, style, onFocus, onBlur, value, multiline, placeholder, ...rest
+}: Props) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
 
   const active = focused || !!value;
   const borderColor = error ? colors.danger : focused ? colors.primary : colors.border;
   const labelColor  = error ? colors.danger : focused ? colors.primary : colors.textMuted;
+
+  // Only hand the placeholder to TextInput once the label is out of the way.
+  const effectivePlaceholder = !label || active ? placeholder : undefined;
 
   return (
     <View style={{ marginBottom: spacing.xl }}>
@@ -28,6 +41,7 @@ export function Input({ label, error, style, onFocus, onBlur, value, multiline, 
           {...rest}
           value={value}
           multiline={multiline}
+          placeholder={effectivePlaceholder}
           placeholderTextColor={colors.textDim}
           onFocus={(e) => { setFocused(true); onFocus?.(e); }}
           onBlur={(e) => { setFocused(false); onBlur?.(e); }}

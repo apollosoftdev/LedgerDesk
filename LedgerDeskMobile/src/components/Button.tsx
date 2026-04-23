@@ -55,11 +55,19 @@ export function Button({
       break;
   }
 
+  // Ripple color should match the button's semantic color, not a hardcoded primary.
+  const rippleColor =
+    variant === 'contained' || variant === 'danger'
+      ? 'rgba(255,255,255,0.18)'           // on solid fills: white wash
+      : variant === 'danger-outlined'
+        ? 'rgba(255, 86, 48, 0.18)'        // danger tint
+        : 'rgba(24, 119, 242, 0.16)';      // primary tint (outlined, text)
+
   return (
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      android_ripple={{ color: variant === 'contained' ? 'rgba(255,255,255,0.18)' : 'rgba(24,119,242,0.12)' }}
+      android_ripple={{ color: rippleColor }}
       style={({ pressed }) => [
         styles.base,
         elevation,

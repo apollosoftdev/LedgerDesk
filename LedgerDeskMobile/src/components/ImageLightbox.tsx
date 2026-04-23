@@ -98,6 +98,9 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
     });
 
   const pan = Gesture.Pan()
+    // Require finger to move before pan activates — otherwise static taps
+    // get consumed as pan and the double-tap gesture never fires.
+    .minDistance(8)
     .minPointers(1)
     .maxPointers(2)
     .onUpdate(e => {
@@ -112,12 +115,23 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
 
   const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
-    .onStart(() => {
+    .maxDelay(250)
+    .maxDistance(10)
+    .onStart((e) => {
       if (scale.value > 1.05) {
         reset();
       } else {
-        scale.value = withSpring(2.5);
-        savedScale.value = 2.5;
+        // Zoom toward where the user tapped, not toward the image center.
+        const cx = e.x - width / 2;
+        const cy = e.y - height / 2;
+        const target = 2.5;
+        scale.value = withSpring(target);
+        savedScale.value = target;
+        // Offset so the tap point stays roughly under the finger after zoom.
+        tx.value = withSpring(-cx * (target - 1));
+        savedTx.value = -cx * (target - 1);
+        ty.value = withSpring(-cy * (target - 1));
+        savedTy.value = -cy * (target - 1);
       }
     });
 

@@ -72,60 +72,61 @@ export default function RecordsList() {
         }
       />
 
-      {/* Search pill */}
-      <View style={[styles.search, { backgroundColor: colors.surfaceAlt }]}>
-        <Text style={{ color: colors.textMuted, fontSize: 16, marginRight: 8 }}>⌕</Text>
-        <TextInput
-          placeholder={t('filter.search_title')}
-          placeholderTextColor={colors.textDim}
-          value={titleQ}
-          onChangeText={setTitleQ}
-          style={{ flex: 1, color: colors.text, fontSize: 14, padding: 0 }}
-        />
+      {/* Top controls — fixed-height header area above the scrollable list */}
+      <View style={{ flexShrink: 0 }}>
+        <View style={[styles.search, { backgroundColor: colors.surfaceAlt }]}>
+          <Text style={{ color: colors.textMuted, fontSize: 16, marginRight: 8 }}>⌕</Text>
+          <TextInput
+            placeholder={t('filter.search_title')}
+            placeholderTextColor={colors.textDim}
+            value={titleQ}
+            onChangeText={setTitleQ}
+            style={{ flex: 1, color: colors.text, fontSize: 14, padding: 0 }}
+          />
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipRow}
+          style={styles.chipScroll}
+        >
+          <Chip label={t('payment.all')} active={paymentFilter === null && !categoryFilter} onPress={() => { setPaymentFilter(null); setCategoryFilter(undefined); }} />
+          <Chip label={t('payment.income')} active={paymentFilter === 0} onPress={() => setPaymentFilter(paymentFilter === 0 ? null : 0)} />
+          <Chip label={t('payment.expense')} active={paymentFilter === 1} onPress={() => setPaymentFilter(paymentFilter === 1 ? null : 1)} />
+          {categories.map(c => (
+            <Chip
+              key={c.id}
+              label={c.name}
+              active={categoryFilter === c.name}
+              onPress={() => setCategoryFilter(categoryFilter === c.name ? undefined : c.name)}
+            />
+          ))}
+        </ScrollView>
+
+        <Pressable onPress={() => setShowFilters(s => !s)} style={styles.moreBtn}>
+          <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '500' }}>
+            {showFilters ? '▾' : '▸'} {t('filter.filters')}
+          </Text>
+        </Pressable>
+
+        {showFilters ? (
+          <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
+            <Input placeholder={t('filter.search_desc')} value={descQ} onChangeText={setDescQ} />
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ flex: 1 }}><Input placeholder={t('filter.min_amount')} value={minAmt} onChangeText={setMinAmt} keyboardType="numeric" /></View>
+              <View style={{ flex: 1 }}><Input placeholder={t('filter.max_amount')} value={maxAmt} onChangeText={setMaxAmt} keyboardType="numeric" /></View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ flex: 1 }}><Input placeholder="YYYY-MM-DD" value={fromDate} onChangeText={setFromDate} /></View>
+              <View style={{ flex: 1 }}><Input placeholder="YYYY-MM-DD" value={toDate} onChangeText={setToDate} /></View>
+            </View>
+            <Button title={t('filter.clear')} onPress={clearFilters} variant="text" fullWidth />
+          </View>
+        ) : null}
       </View>
 
-      {/* Quick chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipRow}
-      >
-        <Chip label={t('payment.all')} active={paymentFilter === null && !categoryFilter} onPress={() => { setPaymentFilter(null); setCategoryFilter(undefined); }} />
-        <Chip label={t('payment.income')} active={paymentFilter === 0} onPress={() => setPaymentFilter(paymentFilter === 0 ? null : 0)} />
-        <Chip label={t('payment.expense')} active={paymentFilter === 1} onPress={() => setPaymentFilter(paymentFilter === 1 ? null : 1)} />
-        {categories.map(c => (
-          <Chip
-            key={c.id}
-            label={c.name}
-            active={categoryFilter === c.name}
-            onPress={() => setCategoryFilter(categoryFilter === c.name ? undefined : c.name)}
-          />
-        ))}
-      </ScrollView>
-
-      {/* Expand filters */}
-      <Pressable onPress={() => setShowFilters(s => !s)} style={styles.moreBtn}>
-        <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '500' }}>
-          {showFilters ? '▾' : '▸'} {t('filter.filters')}
-        </Text>
-      </Pressable>
-
-      {showFilters ? (
-        <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
-          <Input placeholder={t('filter.search_desc')} value={descQ} onChangeText={setDescQ} />
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1 }}><Input placeholder={t('filter.min_amount')} value={minAmt} onChangeText={setMinAmt} keyboardType="numeric" /></View>
-            <View style={{ flex: 1 }}><Input placeholder={t('filter.max_amount')} value={maxAmt} onChangeText={setMaxAmt} keyboardType="numeric" /></View>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1 }}><Input placeholder="YYYY-MM-DD" value={fromDate} onChangeText={setFromDate} /></View>
-            <View style={{ flex: 1 }}><Input placeholder="YYYY-MM-DD" value={toDate} onChangeText={setToDate} /></View>
-          </View>
-          <Button title={t('filter.clear')} onPress={clearFilters} variant="text" fullWidth />
-        </View>
-      ) : null}
-
-      {/* Records list as unified card */}
+      {/* Records list — fills remaining space below the controls */}
       {records.length === 0 ? (
         <View style={[styles.emptyCard, { backgroundColor: colors.surface }, shadow.sm]}>
           <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('empty.title')}</Text>
@@ -133,6 +134,7 @@ export default function RecordsList() {
         </View>
       ) : (
         <FlatList
+          style={{ flex: 1 }}
           data={records}
           keyExtractor={r => String(r.id)}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: spacing.huge }}
@@ -189,6 +191,13 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  chipScroll: {
+    // Force the horizontal ScrollView to its content height — otherwise it
+    // stretches vertically in a flex-column parent and pushes everything
+    // below it into the middle of the screen.
+    flexGrow: 0,
+    flexShrink: 0,
   },
   chipRow: {
     paddingHorizontal: 16,

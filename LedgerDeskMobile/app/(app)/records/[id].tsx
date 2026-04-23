@@ -99,8 +99,9 @@ export default function RecordDetail() {
           <Text style={{ fontSize: 12, color: colors.textMuted }}>{record.date}</Text>
         </View>
 
-        {/* Amount card */}
-        <View style={[styles.amountCard, { backgroundColor: amountBg }, shadow.sm]}>
+        {/* Amount card — no shadow; Android's elevation backdrop clashes with
+            the semi-transparent bg and produces a visible double layer. */}
+        <View style={[styles.amountCard, { backgroundColor: amountBg }]}>
           <Text style={{ fontSize: 12, fontWeight: '600', color: amountColor, marginBottom: 4 }}>
             {t('detail.amount_label')}
           </Text>
