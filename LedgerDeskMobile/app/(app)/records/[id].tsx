@@ -1,14 +1,13 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, Dimensions, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '../../../src/components/Screen';
 import { Header } from '../../../src/components/Header';
-import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
 import { ImageLightbox } from '../../../src/components/ImageLightbox';
 import { useTheme } from '../../../src/theme/ThemeProvider';
-import { radius, spacing, typography } from '../../../src/theme/tokens';
+import { radius, shadow, spacing } from '../../../src/theme/tokens';
 import { deleteRecord, getImagesForRecord, getRecordById } from '../../../src/services/records';
 import { deleteImageFile } from '../../../src/services/images';
 import { formatAmount } from '../../../src/services/currency';
@@ -35,7 +34,6 @@ export default function RecordDetail() {
   }, [recordId]));
 
   if (id === 'new') return null;
-
   if (!record) return <Screen />;
 
   const isExpense = record.paymentType === 1;
@@ -54,71 +52,87 @@ export default function RecordDetail() {
     ]);
   };
 
+  const amountColor = isExpense ? colors.expense : colors.income;
+  const amountBg    = isExpense ? colors.expenseBg : colors.incomeBg;
+
   return (
     <Screen>
       <Header title={t('detail.title')} onBack={() => router.back()} />
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxxl }}>
+
+      <ScrollView contentContainerStyle={{ paddingBottom: spacing.huge }}>
+        {/* Gallery */}
         {images.length > 0 ? (
-          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
-            {images.map((img, idx) => (
-              <Pressable key={img.id} onPress={() => setLightboxIndex(idx)}>
-                <Image
-                  source={{ uri: img.uri }}
-                  style={{
-                    width: screenWidth - spacing.lg * 2,
-                    height: 220,
-                    borderRadius: radius.lg,
-                    marginRight: spacing.sm,
-                  }}
-                />
-              </Pressable>
-            ))}
-          </ScrollView>
+          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
+              {images.map((img, idx) => (
+                <Pressable
+                  key={img.id}
+                  onPress={() => setLightboxIndex(idx)}
+                  style={{ position: 'relative' }}
+                >
+                  <Image
+                    source={{ uri: img.uri }}
+                    style={{
+                      width: screenWidth - 40,
+                      height: (screenWidth - 40) * 0.62,
+                      borderRadius: radius.md,
+                      marginRight: 8,
+                    }}
+                  />
+                  {idx === 0 ? (
+                    <View style={styles.zoomHint}>
+                      <Text style={{ color: '#fff', fontSize: 10 }}>tap to zoom</Text>
+                    </View>
+                  ) : null}
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
         ) : null}
 
-        <Card padded>
-          <Text style={[typography.label, { color: colors.textMuted }]}>
+        {/* Meta */}
+        <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+          <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary, marginBottom: 4 }}>
             {record.category}
           </Text>
-          <Text style={[typography.h1, { color: colors.text, marginTop: spacing.xs }]}>
-            {record.title}
-          </Text>
-          <Text style={[typography.caption, { color: colors.textMuted, marginTop: spacing.sm }]}>
-            {record.date}
-          </Text>
-        </Card>
+          <Text style={[styles.title, { color: colors.text }]}>{record.title}</Text>
+          <Text style={{ fontSize: 12, color: colors.textMuted }}>{record.date}</Text>
+        </View>
 
-        <Card padded style={{ backgroundColor: isExpense ? colors.expenseBg : colors.incomeBg, borderColor: isExpense ? colors.expense : colors.income }}>
-          <Text style={[typography.label, { color: isExpense ? colors.expense : colors.income }]}>
+        {/* Amount card */}
+        <View style={[styles.amountCard, { backgroundColor: amountBg }, shadow.sm]}>
+          <Text style={{ fontSize: 12, fontWeight: '600', color: amountColor, marginBottom: 4 }}>
             {t('detail.amount_label')}
           </Text>
-          <Text style={[typography.display, { color: colors.text, marginTop: spacing.xs }]}>
+          <Text style={{ fontSize: 32, fontWeight: '700', letterSpacing: -0.8, color: amountColor, fontVariant: ['tabular-nums'] }}>
             {formatAmount(record.amount, record.paymentType)}
           </Text>
-        </Card>
+        </View>
 
+        {/* Description */}
         {record.description ? (
-          <Card padded>
-            <Text style={[typography.label, { color: colors.textMuted, marginBottom: spacing.sm }]}>
+          <View style={[styles.desc, { backgroundColor: colors.surface }, shadow.sm]}>
+            <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textMuted, marginBottom: 6 }}>
               {t('detail.desc_label')}
             </Text>
-            <Text style={[typography.body, { color: colors.text }]}>
+            <Text style={{ fontSize: 14, lineHeight: 22, color: colors.text }}>
               {record.description}
             </Text>
-          </Card>
+          </View>
         ) : null}
 
-        <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.md }}>
+        {/* Actions */}
+        <View style={styles.actions}>
           <View style={{ flex: 1 }}>
             <Button
               title={t('detail.edit')}
               onPress={() => router.push(`/(app)/records/edit?id=${record.id}`)}
-              variant="secondary"
+              variant="outlined"
               fullWidth
             />
           </View>
           <View style={{ flex: 1 }}>
-            <Button title={t('detail.delete')} onPress={onDelete} variant="danger" fullWidth />
+            <Button title={t('detail.delete')} onPress={onDelete} variant="danger-outlined" fullWidth />
           </View>
         </View>
       </ScrollView>
@@ -132,3 +146,39 @@ export default function RecordDetail() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  title: {
+    fontSize: 22,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+    marginBottom: 4,
+  },
+  amountCard: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 16,
+    borderRadius: radius.md,
+  },
+  desc: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: radius.md,
+  },
+  actions: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  zoomHint: {
+    position: 'absolute',
+    bottom: 10,
+    right: 18,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+});

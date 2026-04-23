@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '../src/components/Screen';
 import { Input } from '../src/components/Input';
 import { Button } from '../src/components/Button';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { spacing, typography } from '../src/theme/tokens';
+import { spacing } from '../src/theme/tokens';
 import { isPasswordSet, setPassword, verifyPassword } from '../src/services/auth';
 import { useAuthStore } from '../src/hooks/useAuthStore';
 
@@ -60,18 +60,19 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: spacing.xl, justifyContent: 'center' }}>
-          <View style={{ marginBottom: spacing.xxxl }}>
-            <Text style={[typography.label, { color: colors.accent, marginBottom: spacing.sm }]}>
-              {t('app.title').toUpperCase()}
-            </Text>
-            <Text style={[typography.display, { color: colors.text, marginBottom: spacing.sm }]}>
-              {isSetup ? t('login.title_setup') : t('login.title_welcome')}
-            </Text>
-            <Text style={[typography.body, { color: colors.textMuted }]}>
-              {isSetup ? t('login.subtitle_setup') : t('login.subtitle_login')}
-            </Text>
-          </View>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={[styles.brand, { color: colors.primary }]}>
+            {t('app.title')}
+          </Text>
+          <Text style={[styles.h1, { color: colors.text }]}>
+            {isSetup ? t('login.title_setup') : t('login.title_welcome')}
+          </Text>
+          <Text style={[styles.sub, { color: colors.textMuted }]}>
+            {isSetup ? t('login.subtitle_setup') : t('login.subtitle_login')}
+          </Text>
 
           <Input
             label={t('login.password_header')}
@@ -98,11 +99,47 @@ export default function LoginScreen() {
             title={isSetup ? t('login.button_setup') : t('login.button_login')}
             onPress={onSubmit}
             loading={busy}
+            variant="contained"
             fullWidth
-            style={{ marginTop: spacing.md }}
           />
+
+          <View style={{ flex: 1, minHeight: spacing.huge }} />
+
+          <Text style={[styles.footer, { color: colors.textDim }]}>
+            Biometric unlock coming soon
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  scroll: {
+    paddingHorizontal: 28,
+    paddingTop: 32,
+    paddingBottom: 32,
+    minHeight: '100%',
+  },
+  brand: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: spacing.huge - 8,
+  },
+  h1: {
+    fontSize: 28,
+    fontWeight: '600',
+    letterSpacing: -0.4,
+    marginBottom: 8,
+  },
+  sub: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: spacing.xxxl,
+  },
+  footer: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: spacing.xl,
+  },
+});

@@ -1,42 +1,90 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
-import { radius, spacing, typography } from '../theme/tokens';
+import { radius, spacing } from '../theme/tokens';
 
 type Props = TextInputProps & {
   label?: string;
   error?: string;
 };
 
-export function Input({ label, error, style, onFocus, onBlur, ...rest }: Props) {
+/**
+ * MUI-style outlined TextField.
+ * Label sits at the top-left of the border (floating style).
+ * Border + label both color to primary when focused, to error on validation.
+ */
+export function Input({ label, error, style, onFocus, onBlur, value, multiline, ...rest }: Props) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
 
+  const active = focused || !!value;
+  const borderColor = error ? colors.danger : focused ? colors.primary : colors.border;
+  const labelColor  = error ? colors.danger : focused ? colors.primary : colors.textMuted;
+
   return (
-    <View style={{ gap: spacing.xs, marginBottom: spacing.md }}>
-      {label ? (
-        <Text style={[typography.label, { color: colors.textMuted }]}>{label}</Text>
+    <View style={{ marginBottom: spacing.xl }}>
+      <View style={{ position: 'relative' }}>
+        <TextInput
+          {...rest}
+          value={value}
+          multiline={multiline}
+          placeholderTextColor={colors.textDim}
+          onFocus={(e) => { setFocused(true); onFocus?.(e); }}
+          onBlur={(e) => { setFocused(false); onBlur?.(e); }}
+          style={[
+            styles.input,
+            {
+              backgroundColor: 'transparent',
+              borderColor,
+              color: colors.text,
+              paddingTop: label ? 16 : 14,
+              minHeight: multiline ? 90 : 52,
+              textAlignVertical: multiline ? 'top' : 'center',
+            },
+            focused && { borderWidth: 2 },
+            style,
+          ]}
+        />
+        {label ? (
+          <View
+            style={[
+              styles.labelWrap,
+              { backgroundColor: colors.bg },
+              active ? styles.labelFloat : styles.labelRest,
+            ]}
+            pointerEvents="none"
+          >
+            <Text style={{ color: labelColor, fontSize: active ? 12 : 14, fontWeight: active ? '500' : '400' }}>
+              {label}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+      {error ? (
+        <Text style={{ color: colors.danger, fontSize: 12, marginTop: 6, marginLeft: 4 }}>{error}</Text>
       ) : null}
-      <TextInput
-        {...rest}
-        placeholderTextColor={colors.textDim}
-        onFocus={(e) => { setFocused(true); onFocus?.(e); }}
-        onBlur={(e) => { setFocused(false); onBlur?.(e); }}
-        style={[
-          {
-            backgroundColor: colors.surface,
-            borderColor: error ? colors.danger : focused ? colors.accent : colors.border,
-            borderWidth: 1,
-            borderRadius: radius.md,
-            paddingHorizontal: spacing.md,
-            paddingVertical: 12,
-            color: colors.text,
-            fontSize: 15,
-          },
-          style,
-        ]}
-      />
-      {error ? <Text style={{ color: colors.danger, fontSize: 12 }}>{error}</Text> : null}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  input: {
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: radius.xs,
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+    fontSize: 15,
+  },
+  labelWrap: {
+    position: 'absolute',
+    left: 10,
+    paddingHorizontal: 6,
+  },
+  labelRest: {
+    top: 14,
+  },
+  labelFloat: {
+    top: -9,
+  },
+});

@@ -163,3 +163,43 @@ export async function clearAllRecords(): Promise<void> {
   const db = await getDb();
   await db.execAsync('DELETE FROM RecordImages; DELETE FROM Records;');
 }
+
+/**
+ * Returns cumulative running balance per day for the last `days` days
+ * (inclusive of today). Used for the dashboard trend chart.
+ */
+export async function getBalanceTrend(days = 30): Promise<{ date: string; balance: number }[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ Date: string; Amount: number; PaymentType: number }>(
+    'SELECT Date, Amount, PaymentType FROM Records ORDER BY Date ASC'
+  );
+
+  const dailyChange: { [date: string]: number } = {};
+  for (const r of rows) {
+    const net = r.PaymentType === 1 ? -r.Amount : r.Amount;
+    dailyChange[r.Date] = (dailyChange[r.Date] ?? 0) + net;
+  }
+
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(today.getDate() - days + 1);
+
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const startStr = iso(start);
+
+  // Seed balance = sum of changes before the window
+  let balance = 0;
+  for (const [date, change] of Object.entries(dailyChange)) {
+    if (date < startStr) balance += change;
+  }
+
+  const out: { date: string; balance: number }[] = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const s = iso(d);
+    balance += dailyChange[s] ?? 0;
+    out.push({ date: s, balance });
+  }
+  return out;
+}

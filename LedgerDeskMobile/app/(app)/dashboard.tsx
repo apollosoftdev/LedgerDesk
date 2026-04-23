@@ -1,40 +1,46 @@
 import React, { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, ToastAndroid, View, Platform, Alert } from 'react-native';
+import {
+  Alert, Dimensions, Platform, Pressable, ScrollView, StyleSheet,
+  Text, ToastAndroid, View,
+} from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Clipboard from 'expo-clipboard';
 import { Screen } from '../../src/components/Screen';
 import { Header } from '../../src/components/Header';
-import { Card } from '../../src/components/Card';
-import { Button } from '../../src/components/Button';
+import { BalanceChart } from '../../src/components/BalanceChart';
 import { useTheme } from '../../src/theme/ThemeProvider';
-import { spacing, typography } from '../../src/theme/tokens';
-import { getStats } from '../../src/services/records';
+import { radius, shadow, spacing } from '../../src/theme/tokens';
+import { getBalanceTrend, getStats } from '../../src/services/records';
 import { formatBalance } from '../../src/services/currency';
 
 type Stats = { total: number; income: number; expense: number; balance: number };
+
+type TrendPoint = { date: string; balance: number };
 
 export default function Dashboard() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const [stats, setStats] = useState<Stats>({ total: 0, income: 0, expense: 0, balance: 0 });
+  const [trend, setTrend] = useState<TrendPoint[]>([]);
+  const screenW = Dimensions.get('window').width;
 
   useFocusEffect(
     useCallback(() => {
-      getStats().then(setStats);
+      (async () => {
+        setStats(await getStats());
+        setTrend(await getBalanceTrend(30));
+      })();
     }, [])
   );
 
-  const copyValue = async (raw: number | string) => {
+  const copy = async (raw: number | string) => {
     const text = typeof raw === 'number' ? String(raw) : raw;
     await Clipboard.setStringAsync(text);
     const msg = t('common.copied', { value: text });
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert(msg);
-    }
+    if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
+    else Alert.alert(msg);
   };
 
   return (
@@ -43,85 +49,163 @@ export default function Dashboard() {
         title={t('dashboard.title')}
         subtitle={t('dashboard.subtitle')}
         right={
-          <Pressable onPress={() => router.push('/(app)/settings')} hitSlop={12}>
-            <Text style={{ color: colors.accent, fontSize: 22 }}>⚙</Text>
+          <Pressable
+            onPress={() => router.push('/(app)/settings')}
+            android_ripple={{ color: colors.surfaceHover, radius: 20, borderless: true }}
+            style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Text style={{ color: colors.text, fontSize: 20 }}>⚙</Text>
           </Pressable>
         }
       />
 
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}>
-        <Pressable onLongPress={() => copyValue(stats.balance)} onPress={() => copyValue(stats.balance)} delayLongPress={250}>
-          <Card padded>
-            <Text style={[typography.label, { color: colors.textMuted }]}>
+      <ScrollView contentContainerStyle={{ paddingBottom: spacing.huge * 2 }}>
+        {/* Balance card */}
+        <Pressable onPress={() => copy(stats.balance)}>
+          <View style={[styles.balanceCard, { backgroundColor: colors.surface }, shadow.md]}>
+            <Text style={[styles.cardLabel, { color: colors.textMuted }]}>
               {t('dashboard.stat_balance')}
             </Text>
-            <Text
-              style={[
-                typography.display,
-                {
-                  color: stats.balance >= 0 ? colors.income : colors.expense,
-                  marginTop: spacing.xs,
-                  fontSize: 42,
-                },
-              ]}
-            >
+            <Text style={[styles.balanceValue, { color: colors.text }]}>
               {formatBalance(stats.balance)}
             </Text>
-          </Card>
+          </View>
         </Pressable>
 
-        <View style={styles.row}>
-          <Pressable style={{ flex: 1 }} onPress={() => copyValue(stats.income)}>
-            <Card style={{ backgroundColor: colors.incomeBg, borderColor: colors.income }}>
-              <Text style={[typography.label, { color: colors.income }]}>
+        {/* Stat cards */}
+        <View style={styles.statRow}>
+          <Pressable style={{ flex: 1 }} onPress={() => copy(stats.income)}>
+            <View style={[styles.stat, { backgroundColor: colors.surface }, shadow.sm]}>
+              <Text style={[styles.statLabel, { color: colors.income }]}>
                 {t('dashboard.stat_income')}
               </Text>
-              <Text style={[typography.h2, { color: colors.text, marginTop: spacing.xs }]}>
+              <Text style={[styles.statValue, { color: colors.text }]}>
                 {formatBalance(stats.income)}
               </Text>
-            </Card>
+            </View>
           </Pressable>
-          <Pressable style={{ flex: 1 }} onPress={() => copyValue(stats.expense)}>
-            <Card style={{ backgroundColor: colors.expenseBg, borderColor: colors.expense }}>
-              <Text style={[typography.label, { color: colors.expense }]}>
+          <Pressable style={{ flex: 1 }} onPress={() => copy(stats.expense)}>
+            <View style={[styles.stat, { backgroundColor: colors.surface }, shadow.sm]}>
+              <Text style={[styles.statLabel, { color: colors.expense }]}>
                 {t('dashboard.stat_expense')}
               </Text>
-              <Text style={[typography.h2, { color: colors.text, marginTop: spacing.xs }]}>
+              <Text style={[styles.statValue, { color: colors.text }]}>
                 {formatBalance(stats.expense)}
               </Text>
-            </Card>
+            </View>
           </Pressable>
         </View>
 
-        <Pressable onPress={() => copyValue(stats.total)}>
-          <Card padded>
-            <Text style={[typography.label, { color: colors.textMuted }]}>
-              {t('dashboard.stat_total')}
-            </Text>
-            <Text style={[typography.h1, { color: colors.text, marginTop: spacing.xs }]}>
-              {stats.total}
-            </Text>
-          </Card>
-        </Pressable>
-
-        <View style={{ gap: spacing.md, marginTop: spacing.lg }}>
-          <Button
-            title={t('record.new_button')}
-            onPress={() => router.push('/(app)/records/new')}
-            fullWidth
-          />
-          <Button
-            title={t('record.list_title')}
-            onPress={() => router.push('/(app)/records')}
-            variant="secondary"
-            fullWidth
-          />
+        {/* Balance trend chart */}
+        <View style={styles.sectionHead}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Balance trend
+          </Text>
+          <Text style={{ color: colors.textMuted, fontSize: 12 }}>
+            Last 30 days
+          </Text>
         </View>
+
+        <View style={[styles.chartCard, shadow.sm]}>
+          <BalanceChart data={trend} width={screenW - 32} height={200} />
+        </View>
+
+        <Pressable onPress={() => router.push('/(app)/records')} style={styles.seeAllLink}>
+          <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>
+            View all records →
+          </Text>
+        </Pressable>
       </ScrollView>
+
+      {/* FAB */}
+      <Pressable
+        onPress={() => router.push('/(app)/records/new')}
+        style={({ pressed }) => [
+          styles.fab,
+          shadow.fab,
+          {
+            backgroundColor: colors.primary,
+            opacity: pressed ? 0.92 : 1,
+          },
+        ]}
+      >
+        <Text style={{ color: colors.onPrimary, fontSize: 28, fontWeight: '300', lineHeight: 32 }}>＋</Text>
+      </Pressable>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: spacing.md },
+  balanceCard: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    padding: 20,
+    borderRadius: radius.lg,
+  },
+  cardLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  balanceValue: {
+    fontSize: 32,
+    fontWeight: '700',
+    letterSpacing: -0.6,
+    fontVariant: ['tabular-nums'],
+  },
+  statRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 16,
+    marginBottom: spacing.xl,
+  },
+  stat: {
+    padding: 14,
+    borderRadius: radius.md,
+  },
+  statLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+    fontVariant: ['tabular-nums'],
+  },
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+  chartCard: {
+    marginHorizontal: 16,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
+  seeAllLink: {
+    alignSelf: 'center',
+    marginTop: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

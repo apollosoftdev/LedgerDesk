@@ -152,8 +152,12 @@ export type RestoreResult = {
 };
 
 export async function pickAndRestore(): Promise<RestoreResult> {
+  // Accept any file: Android often reports LedgerDesk backups as
+  // text/plain, application/octet-stream, or unknown rather than
+  // application/json depending on where they were saved. We validate
+  // the contents below regardless.
   const pick = await DocumentPicker.getDocumentAsync({
-    type: 'application/json',
+    type: '*/*',
     copyToCacheDirectory: true,
   });
   if (pick.canceled || !pick.assets?.[0]) return { ok: false, error: 'cancelled' };

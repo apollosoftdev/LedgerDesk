@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
-import { spacing, typography } from '../theme/tokens';
+import { spacing } from '../theme/tokens';
 
 type Props = {
   title: string;
@@ -10,34 +10,64 @@ type Props = {
   right?: React.ReactNode;
 };
 
+/**
+ * MUI-style AppBar. 56px min height, icon buttons are 40px circular with ripple.
+ */
 export function Header({ title, subtitle, onBack, right }: Props) {
   const { colors } = useTheme();
   return (
-    <View style={[styles.wrap, { borderBottomColor: colors.divider }]}>
-      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-        {onBack ? (
-          <Pressable onPress={onBack} hitSlop={12}>
-            <Text style={{ color: colors.accent, fontSize: 17, fontWeight: '600' }}>‹</Text>
-          </Pressable>
+    <View style={styles.wrap}>
+      {onBack ? (
+        <Pressable
+          onPress={onBack}
+          android_ripple={{ color: colors.surfaceHover, radius: 20, borderless: true }}
+          style={styles.iconBtn}
+        >
+          <Text style={{ color: colors.text, fontSize: 22, lineHeight: 22 }}>‹</Text>
+        </Pressable>
+      ) : (
+        <View style={{ width: spacing.md }} />
+      )}
+
+      <View style={styles.title}>
+        <Text style={[styles.titleText, { color: colors.text }]} numberOfLines={1}>{title}</Text>
+        {subtitle ? (
+          <Text style={[styles.subtitle, { color: colors.textMuted }]} numberOfLines={1}>{subtitle}</Text>
         ) : null}
-        <View style={{ flex: 1 }}>
-          <Text style={[typography.h1, { color: colors.text }]}>{title}</Text>
-          {subtitle ? (
-            <Text style={[typography.caption, { color: colors.textMuted, marginTop: 2 }]}>{subtitle}</Text>
-          ) : null}
-        </View>
       </View>
-      {right}
+
+      {right ?? <View style={{ width: spacing.md }} />}
     </View>
   );
 }
 
+// Style that needs the theme colors is generated at render time; keep base
+// layout in StyleSheet for perf.
 const styles = StyleSheet.create({
   wrap: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
+    minHeight: 56,
+    paddingHorizontal: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 4,
+  },
+  iconBtn: {
+    width: 40, height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    flex: 1,
+    paddingLeft: 8,
+  },
+  titleText: {
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+  subtitle: {
+    fontSize: 12,
+    marginTop: 2,
   },
 });

@@ -1,0 +1,1945 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LedgerDesk Mobile — UI Design Draft v3 (MUI / Navy)</title>
+<style>
+/* ========================================================================
+   DESIGN TOKENS — MUI-style, navy base, Material Design 3 influenced
+   ======================================================================== */
+:root {
+  /* ---- Grey palette (shared tokens; used as building blocks below) ---- */
+  --grey-50:  #FCFDFD;
+  --grey-100: #F9FAFB;
+  --grey-200: #F4F6F8;
+  --grey-300: #DFE3E8;
+  --grey-400: #C4CDD5;
+  --grey-500: #919EAB;
+  --grey-600: #637381;
+  --grey-700: #454F5B;
+  --grey-800: #1C252E;
+  --grey-900: #141A21;
+
+  /* Dark-theme surface elevation — built from grey-900 / 800 / 700 */
+  --bg:            var(--grey-900);
+  --surface-0:     var(--grey-900);
+  --surface-1:     var(--grey-800);
+  --surface-2:     var(--grey-800);
+  --surface-3:     #263440;               /* input bg, between 800 and 700 */
+  --surface-4:     #2E3944;               /* hover */
+  --surface-5:     var(--grey-700);
+
+  --divider:       rgba(145, 158, 171, 0.10);
+  --outline:       rgba(145, 158, 171, 0.22);
+  --outline-var:   rgba(145, 158, 171, 0.14);
+
+  /* Text */
+  --text:       #FFFFFF;
+  --text-muted: var(--grey-400);
+  --text-dim:   var(--grey-500);
+  --text-inv:   #FFFFFF;
+
+  /* ---- Palette · primary (blue) ---- */
+  --primary-lighter: #D0ECFE;
+  --primary-light:   #73BAFB;
+  --primary-main:    #1877F2;
+  --primary-dark:    #0C44AE;
+  --primary-darker:  #042174;
+
+  --primary:       #1877F2;
+  --primary-hi:    #73BAFB;
+  --primary-lo:    #0C44AE;
+  --primary-cont:  #042174;
+  --primary-bg:    rgba(24, 119, 242, 0.14);
+  --on-primary:    #FFFFFF;
+
+  /* ---- Palette · success (green, separate from primary) — for income indicators ---- */
+  --success-lighter: #D3FCD2;
+  --success-light:   #77ED8B;
+  --success-main:    #22C55E;
+  --success-dark:    #118D57;
+  --success-darker:  #065E49;
+
+  --success:    #22C55E;
+  --success-bg: rgba(34, 197, 94, 0.14);
+
+  /* ---- Shadows (Material-style elevation on dark navy) ---- */
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.28), 0 2px 6px rgba(0,0,0,0.18);
+  --shadow-2: 0 2px 4px rgba(0,0,0,0.32), 0 6px 14px rgba(0,0,0,0.22);
+  --shadow-3: 0 6px 10px rgba(0,0,0,0.35), 0 14px 28px rgba(0,0,0,0.25);
+
+  /* ---- Palette · danger (error / warm red-orange) ---- */
+  --error-lighter: #FFE9D5;
+  --error-light:   #FFAC82;
+  --error-main:    #FF5630;
+  --error-dark:    #B71D18;
+  --error-darker:  #7A0916;
+
+  --error:      #FF5630;
+  --error-bg:   rgba(255, 86, 48, 0.12);
+
+  /* ---- Palette · info (secondary / purple) ---- */
+  --info-lighter: #EFD6FF;
+  --info-light:   #C684FF;
+  --info-main:    #8E33FF;
+  --info-dark:    #5119B7;
+  --info-darker:  #27097A;
+
+  --info:      #8E33FF;
+  --info-bg:   rgba(142, 51, 255, 0.14);
+
+  --warning:    #FFA726;
+
+  /* Spacing (4px grid) */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;  --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-7: 32px;  --sp-8: 40px;
+  --sp-9: 48px; --sp-10: 64px;
+
+  /* Radii — MD3 preferences */
+  --r-xs: 4px; --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 24px; --r-full: 999px;
+
+  /* Typography — OS default stack (Roboto on Android, SF on iOS, Segoe UI on Windows) */
+  --ff: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ff-mono: ui-monospace, SFMono-Regular, Menlo, "Cascadia Mono", Consolas, monospace;
+}
+
+/* ========================================================================
+   LIGHT THEME — applied per-phone via .phone.theme-light
+   ======================================================================== */
+.phone.theme-light {
+  --bg:            var(--grey-100);
+  --surface-0:     var(--grey-100);
+  --surface-1:     #FFFFFF;
+  --surface-2:     #FFFFFF;
+  --surface-3:     var(--grey-200);
+  --surface-4:     var(--grey-300);
+  --surface-5:     var(--grey-400);
+
+  --divider:       rgba(145, 158, 171, 0.18);
+  --outline:       rgba(145, 158, 171, 0.32);
+  --outline-var:   rgba(145, 158, 171, 0.22);
+
+  --text:       var(--grey-900);
+  --text-muted: var(--grey-600);
+  --text-dim:   var(--grey-500);
+  --text-inv:   #FFFFFF;
+
+  /* Palette · primary (blue, same main as dark theme) */
+  --primary-lighter: #D0ECFE;
+  --primary-light:   #73BAFB;
+  --primary-main:    #1877F2;
+  --primary-dark:    #0C44AE;
+  --primary-darker:  #042174;
+
+  --primary:       #1877F2;
+  --primary-hi:    #73BAFB;
+  --primary-lo:    #0C44AE;
+  --primary-cont:  #D0ECFE;
+  --primary-bg:    rgba(24, 119, 242, 0.10);
+  --on-primary:    #FFFFFF;
+
+  /* Success — green, separate from primary, for income indicators */
+  --success-lighter: #D3FCD2;
+  --success-light:   #77ED8B;
+  --success-main:    #22C55E;
+  --success-dark:    #118D57;
+  --success-darker:  #065E49;
+
+  --success:    #118D57;           /* success-dark for contrast on white */
+  --success-bg: rgba(17, 141, 87, 0.10);
+
+  /* Palette · danger (error / warm red-orange) */
+  --error-lighter: #FFE9D5;
+  --error-light:   #FFAC82;
+  --error-main:    #FF5630;
+  --error-dark:    #B71D18;
+  --error-darker:  #7A0916;
+
+  --error:      #FF5630;           /* error-main, per user */
+  --error-bg:   rgba(255, 86, 48, 0.10);
+
+  /* Palette · info (secondary / purple) */
+  --info-lighter: #EFD6FF;
+  --info-light:   #C684FF;
+  --info-main:    #8E33FF;
+  --info-dark:    #5119B7;
+  --info-darker:  #27097A;
+
+  --info:      #8E33FF;
+  --info-bg:   rgba(142, 51, 255, 0.10);
+
+  --warning:    #ED6C02;
+
+  /* Shadows — softer, MUI-style on white */
+  --shadow-1: 0 1px 2px rgba(16,24,40,0.05), 0 1px 3px rgba(16,24,40,0.10);
+  --shadow-2: 0 2px 4px -1px rgba(16,24,40,0.08), 0 4px 10px -2px rgba(16,24,40,0.08);
+  --shadow-3: 0 4px 6px -2px rgba(16,24,40,0.06), 0 12px 20px -4px rgba(16,24,40,0.10);
+
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  box-shadow:
+    0 30px 60px -16px rgba(0, 0, 0, 0.30),
+    0 0 0 1px rgba(0, 0, 0, 0.04) inset !important;
+}
+
+/* ========================================================================
+   PAGE CHROME
+   ======================================================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  font-family: var(--ff);
+  color: var(--text);
+  background: #050B18;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  min-height: 100vh;
+  padding: 48px 32px 96px;
+}
+.page-head {
+  max-width: 1600px;
+  margin: 0 auto 56px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--divider);
+}
+.page-head .eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+.page-head h1 {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  margin-bottom: 10px;
+}
+.page-head p {
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 640px;
+  line-height: 1.6;
+}
+
+/* Section header for Dark/Light theme */
+.theme-section-head {
+  max-width: 1600px;
+  margin: 0 auto 28px;
+}
+.theme-section-head .eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+.theme-section-head h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  margin-bottom: 4px;
+}
+.theme-section-head p {
+  color: var(--text-muted);
+  font-size: 13px;
+  max-width: 640px;
+  line-height: 1.55;
+}
+.theme-section-head.light {
+  margin-top: 96px;
+  padding-top: 48px;
+  border-top: 1px solid var(--divider);
+}
+
+/* Design-token panels */
+.tokens {
+  max-width: 1600px;
+  margin: 0 auto 64px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+.tokens .panel {
+  background: var(--surface-1);
+  border: 1px solid var(--divider);
+  border-radius: var(--r-md);
+  padding: 20px;
+}
+.tokens h3 {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 14px;
+}
+.swatch-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.swatch {
+  aspect-ratio: 1;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--outline-var);
+  font-size: 9px;
+  color: var(--text-muted);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.type-sample .label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.type-sample > div { margin-bottom: 12px; }
+
+/* ========================================================================
+   PHONE GALLERY
+   ======================================================================== */
+.phones {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 56px 32px;
+}
+.phone-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.phone-caption {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+.phone-caption strong {
+  color: var(--text);
+  font-weight: 600;
+  margin-right: 6px;
+}
+.phone {
+  width: 340px;
+  height: 740px;
+  background: var(--bg);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 42px;
+  overflow: hidden;
+  box-shadow:
+    0 40px 80px -20px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(255,255,255,0.03) inset;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+}
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 110px; height: 26px;
+  background: #000;
+  border-radius: 0 0 18px 18px;
+  z-index: 100;
+}
+.status-bar {
+  padding: 14px 28px 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  height: 44px;
+  align-items: center;
+}
+.screen-body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================================================
+   MUI-STYLE COMPONENTS
+   ======================================================================== */
+
+/* App bar / top nav — MUI AppBar style */
+.appbar {
+  padding: 4px 8px 4px 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 56px;
+}
+.icon-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.icon-btn:hover { background: var(--surface-3); }
+.appbar .title {
+  flex: 1;
+  padding-left: 8px;
+}
+.appbar h1 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+.appbar .subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* MUI Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: var(--r-sm);
+  font-family: var(--ff);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, box-shadow .15s;
+  min-height: 44px;
+  width: auto;
+  text-transform: none;
+}
+.btn-contained {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.14);
+}
+.btn-contained:hover { background: var(--primary-lo); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+.btn-outlined {
+  background: transparent;
+  border-color: var(--outline);
+  color: var(--primary);
+}
+.btn-outlined:hover { background: var(--primary-bg); }
+.btn-text {
+  background: transparent;
+  color: var(--primary);
+  padding: 10px 12px;
+}
+.btn-text:hover { background: var(--primary-bg); }
+.btn-danger {
+  background: var(--error);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.btn-danger-outlined {
+  background: transparent;
+  border-color: var(--error);
+  color: var(--error);
+}
+.btn.full { width: 100%; }
+
+/* MUI Outlined TextField */
+.textfield {
+  position: relative;
+  margin-bottom: 20px;
+}
+.textfield input,
+.textfield textarea {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--outline);
+  border-radius: var(--r-xs);
+  padding: 16px 14px 14px;
+  font-family: var(--ff);
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  resize: none;
+}
+.textfield input::placeholder,
+.textfield textarea::placeholder { color: var(--text-dim); }
+.textfield input:focus,
+.textfield textarea:focus {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+.textfield label {
+  position: absolute;
+  top: 0;
+  left: 10px;
+  transform: translateY(-50%);
+  background: var(--bg);
+  padding: 0 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+  font-weight: 400;
+}
+.textfield.focused label { color: var(--primary); }
+
+/* MUI Card — Paper with elevation (shadow, no border) */
+.card {
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 16px;
+  box-shadow: var(--shadow-1);
+}
+
+/* MUI Chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--outline);
+  color: var(--text-muted);
+  white-space: nowrap;
+  cursor: pointer;
+  height: 28px;
+}
+.chip.filled {
+  background: var(--surface-3);
+  border-color: transparent;
+  color: var(--text);
+}
+.chip.active {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+/* Section label — simple, no uppercase or tracking */
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+/* MUI List row */
+.list-row {
+  background: var(--surface-2);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--divider);
+}
+.list-row:first-child { border-radius: var(--r-md) var(--r-md) 0 0; }
+.list-row:last-child { border-radius: 0 0 var(--r-md) var(--r-md); border-bottom: none; }
+.list-row:only-child { border-radius: var(--r-md); }
+
+/* Content container — standard generous padding */
+.content {
+  padding: 8px 20px 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+.content.generous { padding: 48px 28px 24px; }
+
+/* ========================================================================
+   SCREEN: Activation / Login  — generous padding, centered rhythm
+   ======================================================================== */
+.auth-screen {
+  padding: 32px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+.auth-screen .brand {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 40px;
+  letter-spacing: -0.1px;
+}
+.auth-screen h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  margin-bottom: 8px;
+}
+.auth-screen .sub {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 32px;
+}
+.auth-screen .spacer { flex: 1; }
+.auth-screen .footer-hint {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* Activation-specific info cards */
+.info-tile {
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: var(--shadow-1);
+}
+.info-tile .l {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.info-tile .v {
+  font-family: var(--ff-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.info-tile .v.info { color: var(--info); font-size: 18px; letter-spacing: 1px; }
+.info-tile .copy {
+  color: var(--text-dim);
+  font-size: 16px;
+  padding: 8px;
+  margin-right: -8px;
+}
+
+/* ========================================================================
+   SCREEN: Dashboard
+   ======================================================================== */
+.dashboard .balance-card {
+  margin: 8px 16px 16px;
+  padding: 20px;
+  background: var(--surface-2);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+}
+.dashboard .balance-card .l {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.dashboard .balance-card .big {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--text);
+}
+.dashboard .balance-card .delta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+.dashboard .balance-card .delta .up { color: var(--success); font-weight: 600; }
+
+.dashboard .stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 16px 20px;
+}
+.dashboard .stat {
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 14px;
+  box-shadow: var(--shadow-1);
+}
+.dashboard .stat .l { font-size: 12px; margin-bottom: 6px; color: var(--text-muted); font-weight: 500; }
+.dashboard .stat .v {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  font-variant-numeric: tabular-nums;
+}
+.dashboard .stat.income .l { color: var(--success); }
+.dashboard .stat.expense .l { color: var(--error); }
+
+/* Balance trend chart */
+.chart-card {
+  margin: 0 16px;
+  background: var(--surface-2);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  padding: 12px 12px 8px;
+  position: relative;
+  overflow: hidden;
+}
+.chart-card svg { display: block; }
+.chart-card .chart-stats {
+  position: absolute;
+  top: 14px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 10px;
+}
+.chart-card .chart-stats .k { color: var(--text-muted); font-weight: 500; margin-right: 4px; }
+.chart-card .chart-stats .v { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.chart-card .chart-x {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 6px 4px;
+  font-size: 10px;
+  color: var(--text-dim);
+  font-weight: 500;
+  margin-top: -4px;
+}
+.see-all-link {
+  display: block;
+  text-align: center;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 16px;
+  text-decoration: none;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px 8px;
+}
+.section-head h3 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.section-head a {
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* Records list = one elevated card; rows are dividers inside */
+.records-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+/* Dashboard needs its own gutter since there's no outer scroll wrapper */
+.dashboard > .records-list { margin: 0 16px; }
+.record-row {
+  background: transparent;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background .15s;
+  border-bottom: 1px solid var(--divider);
+}
+.record-row:last-child { border-bottom: none; }
+.record-row .avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.record-row .avatar.inc { background: var(--success-bg); color: var(--success); }
+.record-row .avatar.exp { background: var(--error-bg); color: var(--error); }
+.record-row .info { flex: 1; min-width: 0; }
+.record-row .info .t {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.record-row .info .m {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.record-row .amt {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.record-row .amt.inc { color: var(--success); }
+.record-row .amt.exp { color: var(--error); }
+
+/* Floating Action Button (MUI FAB) */
+.fab {
+  position: absolute;
+  right: 20px;
+  bottom: 24px;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 300;
+  box-shadow:
+    0 6px 10px 0 rgba(0,0,0,0.14),
+    0 1px 18px 0 rgba(0,0,0,0.12),
+    0 3px 5px -1px rgba(0,0,0,0.2);
+  cursor: pointer;
+  z-index: 30;
+  border: none;
+}
+.fab:hover { background: var(--primary-hi); }
+
+/* ========================================================================
+   SCREEN: Records List
+   ======================================================================== */
+.records-screen .search {
+  margin: 4px 16px 10px;
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  padding: 9px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+.records-screen .search::before {
+  content: '⌕';
+  font-size: 18px;
+  color: var(--text-muted);
+}
+.records-screen .chip-row {
+  display: flex;
+  gap: 6px;
+  padding: 0 16px 10px;
+  overflow-x: auto;
+}
+.records-screen .chip-row::-webkit-scrollbar { display: none; }
+.records-screen .list-scroll { padding: 0 16px; overflow-y: auto; flex: 1; }
+
+/* ========================================================================
+   SCREEN: Record Form
+   ======================================================================== */
+.form-screen .content { padding-bottom: 96px; }
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--surface-3);
+  border-radius: var(--r-sm);
+  padding: 4px;
+  margin-bottom: 20px;
+  gap: 0;
+}
+.segmented button {
+  border: none;
+  padding: 10px;
+  border-radius: var(--r-xs);
+  font-family: var(--ff);
+  font-weight: 500;
+  font-size: 13px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.segmented button.active-inc { background: var(--success); color: #fff; }
+.segmented button.active-exp { background: var(--error); color: #fff; }
+
+.chip-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  padding-bottom: 4px;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+.image-tile {
+  aspect-ratio: 1;
+  border-radius: var(--r-sm);
+  background: linear-gradient(135deg, var(--surface-3), var(--surface-4));
+  position: relative;
+  overflow: hidden;
+}
+.image-tile.add {
+  background: transparent;
+  border: 1.5px dashed var(--outline);
+  color: var(--primary);
+  font-size: 28px;
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.image-tile .x {
+  position: absolute; top: 4px; right: 4px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.save-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 14px 20px 20px;
+  background: linear-gradient(180deg, transparent 0%, var(--bg) 30%);
+  display: flex;
+  gap: 10px;
+}
+.save-bar .btn { flex: 1; }
+
+/* ========================================================================
+   SCREEN: Record Detail
+   ======================================================================== */
+.detail-screen .gallery {
+  margin: 4px 20px 16px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  aspect-ratio: 16/10;
+  background: linear-gradient(135deg, var(--surface-3), var(--surface-4));
+  position: relative;
+}
+.detail-screen .gallery .zoom-hint {
+  position: absolute;
+  bottom: 10px; right: 12px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.85);
+  background: rgba(0,0,0,0.55);
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  backdrop-filter: blur(6px);
+}
+.detail-screen .meta {
+  margin: 0 20px 12px;
+}
+.detail-screen .meta .cat {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+.detail-screen .meta h1 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+.detail-screen .meta .date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.detail-screen .amount-card {
+  margin: 0 20px 12px;
+  padding: 16px;
+  border-radius: var(--r-md);
+  background: var(--error-bg);
+  box-shadow: var(--shadow-1);
+}
+.detail-screen .amount-card .l {
+  font-size: 12px;
+  color: var(--error);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.detail-screen .amount-card .amt {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  color: var(--error);
+  font-variant-numeric: tabular-nums;
+}
+.detail-screen .desc {
+  margin: 0 20px 20px;
+  padding: 14px 16px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+}
+.detail-screen .desc .l {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.detail-screen .desc .body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+}
+.detail-screen .actions {
+  margin: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ========================================================================
+   SCREEN: Settings
+   ======================================================================== */
+.settings-screen .content { padding: 0 20px 24px; }
+.settings-group { margin-bottom: 28px; margin-top: 16px; }
+.settings-group .section-title { padding: 0 4px 10px; margin-bottom: 0; }
+.settings-row {
+  background: var(--surface-2);
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--divider);
+}
+.settings-row:first-of-type { border-radius: var(--r-md) var(--r-md) 0 0; box-shadow: var(--shadow-1); }
+.settings-row:last-of-type { border-radius: 0 0 var(--r-md) var(--r-md); border-bottom: none; }
+.settings-row:only-of-type { border-radius: var(--r-md); border-bottom: none; box-shadow: var(--shadow-1); }
+.settings-row .l { font-size: 14px; color: var(--text); }
+.settings-row .r {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.settings-row .r::after {
+  content: '›';
+  color: var(--text-dim);
+  font-size: 18px;
+  line-height: 1;
+}
+.settings-toggle {
+  display: flex;
+  gap: 6px;
+  padding: 12px 0 0;
+}
+.license-box {
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 16px;
+  box-shadow: var(--shadow-1);
+}
+.license-box .l { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+.license-box .v { font-family: var(--ff-mono); font-size: 13px; font-weight: 600; margin-bottom: 14px; color: var(--text); }
+.stack-buttons { display: flex; flex-direction: column; gap: 8px; }
+
+/* ========================================================================
+   Rationale grid
+   ======================================================================== */
+.rationale {
+  max-width: 1200px;
+  margin: 80px auto 0;
+  padding-top: 40px;
+  border-top: 1px solid var(--divider);
+}
+.rationale .eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+.rationale h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  margin-bottom: 24px;
+}
+.rationale-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.rationale-grid h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.rationale-grid p {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+</style>
+</head>
+<body>
+
+<header class="page-head">
+  <div class="eyebrow">LedgerDesk · Mobile · Design Draft v3</div>
+  <h1>MUI styling, midnight navy palette</h1>
+  <p>
+    Rebuilt with Material-UI component language (contained/outlined buttons, outlined text fields with
+    floating labels, Paper-style cards, FAB). Deep navy surfaces instead of black/gray; MUI blue as the
+    primary action color. Editorial ornament stripped — no italic accents, no tracked-out uppercase labels,
+    no gold underlines. Generous 28px horizontal padding on auth screens.
+  </p>
+</header>
+
+<!-- Token swatches -->
+<section class="tokens">
+  <div class="panel">
+    <h3>Grey · surfaces + text</h3>
+    <div class="swatch-row" style="grid-template-columns: repeat(10, 1fr);">
+      <div class="swatch" style="background:#FCFDFD; color:#141A21">50</div>
+      <div class="swatch" style="background:#F9FAFB; color:#141A21">100</div>
+      <div class="swatch" style="background:#F4F6F8; color:#141A21">200</div>
+      <div class="swatch" style="background:#DFE3E8; color:#141A21">300</div>
+      <div class="swatch" style="background:#C4CDD5; color:#141A21">400</div>
+      <div class="swatch" style="background:#919EAB; color:#fff">500</div>
+      <div class="swatch" style="background:#637381; color:#fff">600</div>
+      <div class="swatch" style="background:#454F5B; color:#fff">700</div>
+      <div class="swatch" style="background:#1C252E; color:#fff">800</div>
+      <div class="swatch" style="background:#141A21; color:#fff">900</div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Primary · blue</h3>
+    <div class="swatch-row">
+      <div class="swatch" style="background:#D0ECFE; color:#042174">lighter</div>
+      <div class="swatch" style="background:#73BAFB; color:#042174">light</div>
+      <div class="swatch" style="background:#1877F2; color:#fff">main</div>
+      <div class="swatch" style="background:#0C44AE; color:#fff">dark</div>
+      <div class="swatch" style="background:#042174; color:#fff">darker</div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Success · green (income)</h3>
+    <div class="swatch-row">
+      <div class="swatch" style="background:#D3FCD2; color:#065E49">lighter</div>
+      <div class="swatch" style="background:#77ED8B; color:#065E49">light</div>
+      <div class="swatch" style="background:#22C55E; color:#fff">main</div>
+      <div class="swatch" style="background:#118D57; color:#fff">dark</div>
+      <div class="swatch" style="background:#065E49; color:#fff">darker</div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Danger · error orange-red</h3>
+    <div class="swatch-row">
+      <div class="swatch" style="background:#FFE9D5; color:#7A0916">lighter</div>
+      <div class="swatch" style="background:#FFAC82; color:#7A0916">light</div>
+      <div class="swatch" style="background:#FF5630; color:#fff">main</div>
+      <div class="swatch" style="background:#B71D18; color:#fff">dark</div>
+      <div class="swatch" style="background:#7A0916; color:#fff">darker</div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Info · secondary purple</h3>
+    <div class="swatch-row">
+      <div class="swatch" style="background:#EFD6FF; color:#27097A">lighter</div>
+      <div class="swatch" style="background:#C684FF; color:#27097A">light</div>
+      <div class="swatch" style="background:#8E33FF; color:#fff">main</div>
+      <div class="swatch" style="background:#5119B7; color:#fff">dark</div>
+      <div class="swatch" style="background:#27097A; color:#fff">darker</div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Typography</h3>
+    <div class="type-sample">
+      <div><div class="label">Headline · 28 / 600</div><div style="font-size:24px; font-weight:600; letter-spacing:-0.3px;">Welcome back</div></div>
+      <div><div class="label">Money · 36 / 700 · tabular</div><div style="font-size:28px; font-weight:700; letter-spacing:-0.6px; font-variant-numeric:tabular-nums;">$12,847.35</div></div>
+      <div><div class="label">Body · 14 / 400</div><div style="font-size:14px; color:var(--text-muted);">Office supplies from the Monday drop-in.</div></div>
+      <div><div class="label">Mono (IDs only)</div><div style="font-family:var(--ff-mono); font-size:13px; color:var(--primary);">A1B2-C3D4-E5F6-7890</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     DARK THEME
+     ============================================================ -->
+<div class="theme-section-head">
+  <div class="eyebrow">01 · Dark theme</div>
+  <h2>Midnight navy, bright primary</h2>
+  <p>Default. Navy surfaces (elevation via lighter tint, Material Design style). MUI-blue primary for contained buttons, active chips, floating action button, and links.</p>
+</div>
+
+<section class="phones">
+
+  <!-- ========= 1. ACTIVATION ========= -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body">
+        <div class="auth-screen">
+          <div class="brand">LedgerDesk</div>
+          <h1>Activate license</h1>
+          <p class="sub">Enter the license key your administrator provides.</p>
+
+          <div class="info-tile">
+            <div>
+              <div class="l">Serial Number</div>
+              <div class="v">A1B2-C3D4-E5F6-7890</div>
+            </div>
+            <div class="copy">⎘</div>
+          </div>
+          <div class="info-tile" style="margin-bottom:28px;">
+            <div>
+              <div class="l">Code</div>
+              <div class="v info">4821</div>
+            </div>
+            <div class="copy">⎘</div>
+          </div>
+
+          <div class="textfield focused">
+            <label>License key</label>
+            <input type="text" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" />
+          </div>
+
+          <button class="btn btn-contained full">Activate</button>
+
+          <div class="spacer"></div>
+          <div class="footer-hint">
+            Provide the Serial Number and Code to your administrator.<br/>
+            The Windows Key Generator produces a matching license key.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>01</strong> Activation</div>
+  </div>
+
+  <!-- ========= 2. LOGIN ========= -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body">
+        <div class="auth-screen">
+          <div class="brand">LedgerDesk</div>
+          <h1>Welcome back</h1>
+          <p class="sub">Enter your password to continue.</p>
+
+          <div class="textfield">
+            <label>Password</label>
+            <input type="password" placeholder="••••••••" />
+          </div>
+
+          <button class="btn btn-contained full">Unlock</button>
+
+          <button class="btn btn-text full" style="margin-top: 8px;">Forgot password?</button>
+
+          <div class="spacer"></div>
+          <div class="footer-hint">Biometric unlock coming soon.</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>02</strong> Login</div>
+  </div>
+
+  <!-- ========= 3. DASHBOARD ========= -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body dashboard">
+        <div class="appbar">
+          <div class="title">
+            <h1>Dashboard</h1>
+            <div class="subtitle">Transaction overview</div>
+          </div>
+          <button class="icon-btn">⚙</button>
+        </div>
+
+        <div class="balance-card">
+          <div class="l">Balance</div>
+          <div class="big">$12,847.35</div>
+          <div class="delta"><span class="up">↑ $234.50</span> this month</div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat income">
+            <div class="l">Income</div>
+            <div class="v">$18,200.00</div>
+          </div>
+          <div class="stat expense">
+            <div class="l">Expense</div>
+            <div class="v">$5,352.65</div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h3>Balance trend</h3>
+          <span style="font-size:12px; color: var(--text-muted);">Last 30 days</span>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-stats">
+            <span><span class="k">Low</span><span class="v">$9,120.00</span></span>
+            <span><span class="k">High</span><span class="v">$13,082.00</span></span>
+          </div>
+          <svg viewBox="0 0 288 180" width="100%" height="180" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="balFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#1877F2" stop-opacity="0.28"/>
+                <stop offset="1" stop-color="#1877F2" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <!-- baseline -->
+            <line x1="12" y1="128" x2="276" y2="128" stroke="rgba(145,158,171,0.18)" stroke-width="1" stroke-dasharray="3 4"/>
+            <!-- fill -->
+            <path fill="url(#balFill)"
+              d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36 L276,156 L12,156 Z"/>
+            <!-- line -->
+            <path fill="none" stroke="#1877F2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+              d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36"/>
+          </svg>
+          <div class="chart-x">
+            <span>Mar 24</span>
+            <span>Apr 22</span>
+          </div>
+        </div>
+
+        <a class="see-all-link">View all records →</a>
+
+        <button class="fab">＋</button>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>03</strong> Dashboard</div>
+  </div>
+
+  <!-- ========= 4. RECORDS LIST ========= -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body records-screen">
+        <div class="appbar">
+          <button class="icon-btn">‹</button>
+          <div class="title">
+            <h1>Records</h1>
+            <div class="subtitle">142 total · 28 shown</div>
+          </div>
+          <button class="icon-btn" style="color: var(--primary);">＋</button>
+        </div>
+
+        <div class="search">Search title…</div>
+
+        <div class="chip-row">
+          <div class="chip active">All</div>
+          <div class="chip">Income</div>
+          <div class="chip">Expense</div>
+          <div class="chip">Food</div>
+          <div class="chip">Salary</div>
+          <div class="chip">Shopping</div>
+        </div>
+
+        <div class="list-scroll">
+          <div class="records-list">
+            <div class="record-row">
+              <div class="avatar exp">−</div>
+              <div class="info"><div class="t">Office Supplies</div><div class="m">Shopping · Apr 22</div></div>
+              <div class="amt exp">−$128.90</div>
+            </div>
+            <div class="record-row">
+              <div class="avatar inc">+</div>
+              <div class="info"><div class="t">April Salary</div><div class="m">Salary · Apr 20</div></div>
+              <div class="amt inc">+$4,800.00</div>
+            </div>
+            <div class="record-row">
+              <div class="avatar exp">−</div>
+              <div class="info"><div class="t">Lunch — Yūrakuchō</div><div class="m">Food · Apr 19</div></div>
+              <div class="amt exp">−$22.50</div>
+            </div>
+            <div class="record-row">
+              <div class="avatar exp">−</div>
+              <div class="info"><div class="t">Train pass · April</div><div class="m">Transport · Apr 18</div></div>
+              <div class="amt exp">−$78.00</div>
+            </div>
+            <div class="record-row">
+              <div class="avatar inc">+</div>
+              <div class="info"><div class="t">Freelance · Kondo&nbsp;Co.</div><div class="m">Other · Apr 15</div></div>
+              <div class="amt inc">+$650.00</div>
+            </div>
+            <div class="record-row">
+              <div class="avatar exp">−</div>
+              <div class="info"><div class="t">Electric · March</div><div class="m">Bills · Apr 12</div></div>
+              <div class="amt exp">−$94.40</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>04</strong> Records · List</div>
+  </div>
+
+  <!-- ========= 5. RECORD FORM ========= -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body form-screen">
+        <div class="appbar">
+          <button class="icon-btn">‹</button>
+          <div class="title"><h1>New record</h1></div>
+        </div>
+
+        <div class="content">
+          <div class="section-title">Payment type</div>
+          <div class="segmented">
+            <button>Income</button>
+            <button class="active-exp">Expense</button>
+          </div>
+
+          <div class="textfield">
+            <label>Title</label>
+            <input type="text" value="Office Supplies" />
+          </div>
+
+          <div class="section-title">Category</div>
+          <div class="chip-row">
+            <div class="chip">Salary</div>
+            <div class="chip">Food</div>
+            <div class="chip active">Shopping</div>
+            <div class="chip">Transport</div>
+            <div class="chip">Bills</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="textfield">
+              <label>Amount</label>
+              <input type="text" value="128.90" />
+            </div>
+            <div class="textfield">
+              <label>Date</label>
+              <input type="text" value="2026-04-22" />
+            </div>
+          </div>
+
+          <div class="textfield">
+            <label>Description</label>
+            <textarea rows="3">Notebooks, pens, desk mat from Monday drop-in.</textarea>
+          </div>
+
+          <div class="section-title">Images</div>
+          <div class="image-grid">
+            <div class="image-tile"><div class="x">×</div></div>
+            <div class="image-tile"><div class="x">×</div></div>
+            <div class="image-tile add">＋</div>
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <button class="btn btn-outlined" style="flex:1;">Cancel</button>
+          <button class="btn btn-contained" style="flex:1;">Save</button>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>05</strong> Record · New/Edit</div>
+  </div>
+
+  <!-- ========= 6. RECORD DETAIL ========= -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body detail-screen">
+        <div class="appbar">
+          <button class="icon-btn">‹</button>
+          <div class="title"><h1>Detail</h1></div>
+          <button class="icon-btn">⋯</button>
+        </div>
+
+        <div class="gallery">
+          <div class="zoom-hint">tap to zoom</div>
+        </div>
+
+        <div class="meta">
+          <div class="cat">Shopping</div>
+          <h1>Office Supplies</h1>
+          <div class="date">22 April 2026 · 3 images</div>
+        </div>
+
+        <div class="amount-card">
+          <div class="l">Amount</div>
+          <div class="amt">−$128.90</div>
+        </div>
+
+        <div class="desc">
+          <div class="l">Description</div>
+          <div class="body">Notebooks, pens, desk mat from the Monday drop-in at Yūrakuchō Loft.</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-outlined">Edit</button>
+          <button class="btn btn-danger-outlined">Delete</button>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>06</strong> Record · Detail</div>
+  </div>
+
+  <!-- ========= 7. SETTINGS ========= -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body settings-screen">
+        <div class="appbar">
+          <button class="icon-btn">‹</button>
+          <div class="title"><h1>Settings</h1></div>
+        </div>
+
+        <div class="content">
+          <div class="settings-group">
+            <div class="section-title">Appearance</div>
+            <div class="settings-toggle">
+              <div class="chip">System</div>
+              <div class="chip">Light</div>
+              <div class="chip active">Dark</div>
+            </div>
+            <div class="section-title" style="margin-top:20px;">Language</div>
+            <div class="settings-toggle">
+              <div class="chip active">English</div>
+              <div class="chip">中文</div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="section-title">Security</div>
+            <div class="textfield">
+              <label>Current password</label>
+              <input type="password" placeholder="••••••••" />
+            </div>
+            <div class="textfield">
+              <label>New password</label>
+              <input type="password" placeholder="••••••••" />
+            </div>
+            <button class="btn btn-outlined full">Change password</button>
+          </div>
+
+          <div class="settings-group">
+            <div class="section-title">License</div>
+            <div class="license-box">
+              <div class="l">Serial Number</div>
+              <div class="v">A1B2-C3D4-E5F6-7890</div>
+              <div class="l">License Key</div>
+              <div class="v">12345-67890-11121-31415-16171</div>
+              <button class="btn btn-danger-outlined full">Deactivate license</button>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="section-title">Data</div>
+            <div class="stack-buttons">
+              <button class="btn btn-contained full">Backup to file</button>
+              <button class="btn btn-outlined full">Restore from backup</button>
+              <button class="btn btn-text full">Change backup folder</button>
+            </div>
+          </div>
+
+          <div class="settings-group" style="margin-top:40px; padding-top:20px; border-top:1px solid var(--divider);">
+            <div class="section-title" style="color: var(--error);">Danger zone</div>
+            <div class="stack-buttons">
+              <button class="btn btn-danger full">Clear all records</button>
+              <button class="btn btn-text full">Log out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>07</strong> Settings</div>
+  </div>
+
+</section>
+
+<!-- ============================================================
+     LIGHT THEME — same 7 screens, .theme-light override
+     ============================================================ -->
+<div class="theme-section-head light">
+  <div class="eyebrow">02 · Light theme</div>
+  <h2>Clean white, deeper primary</h2>
+  <p>Daytime companion. Pure white paper (#F8FAFC → #FFFFFF), deep MUI blue primary (#1976D2) for contrast on light surfaces, soft slate text colors.</p>
+</div>
+
+<section class="phones">
+
+  <!-- ========= L1. ACTIVATION ========= -->
+  <div class="phone-wrap">
+    <div class="phone theme-light">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body">
+        <div class="auth-screen">
+          <div class="brand">LedgerDesk</div>
+          <h1>Activate license</h1>
+          <p class="sub">Enter the license key your administrator provides.</p>
+
+          <div class="info-tile">
+            <div>
+              <div class="l">Serial Number</div>
+              <div class="v">A1B2-C3D4-E5F6-7890</div>
+            </div>
+            <div class="copy">⎘</div>
+          </div>
+          <div class="info-tile" style="margin-bottom:28px;">
+            <div>
+              <div class="l">Code</div>
+              <div class="v info">4821</div>
+            </div>
+            <div class="copy">⎘</div>
+          </div>
+
+          <div class="textfield focused">
+            <label>License key</label>
+            <input type="text" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" />
+          </div>
+
+          <button class="btn btn-contained full">Activate</button>
+
+          <div class="spacer"></div>
+          <div class="footer-hint">
+            Provide the Serial Number and Code to your administrator.<br/>
+            The Windows Key Generator produces a matching license key.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>L1</strong> Activation</div>
+  </div>
+
+  <!-- ========= L2. LOGIN ========= -->
+  <div class="phone-wrap">
+    <div class="phone theme-light">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body">
+        <div class="auth-screen">
+          <div class="brand">LedgerDesk</div>
+          <h1>Welcome back</h1>
+          <p class="sub">Enter your password to continue.</p>
+
+          <div class="textfield">
+            <label>Password</label>
+            <input type="password" placeholder="••••••••" />
+          </div>
+
+          <button class="btn btn-contained full">Unlock</button>
+          <button class="btn btn-text full" style="margin-top: 8px;">Forgot password?</button>
+
+          <div class="spacer"></div>
+          <div class="footer-hint">Biometric unlock coming soon.</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>L2</strong> Login</div>
+  </div>
+
+  <!-- ========= L3. DASHBOARD ========= -->
+  <div class="phone-wrap">
+    <div class="phone theme-light">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body dashboard">
+        <div class="appbar">
+          <div class="title"><h1>Dashboard</h1><div class="subtitle">Transaction overview</div></div>
+          <button class="icon-btn">⚙</button>
+        </div>
+
+        <div class="balance-card">
+          <div class="l">Balance</div>
+          <div class="big">$12,847.35</div>
+          <div class="delta"><span class="up">↑ $234.50</span> this month</div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat income"><div class="l">Income</div><div class="v">$18,200.00</div></div>
+          <div class="stat expense"><div class="l">Expense</div><div class="v">$5,352.65</div></div>
+        </div>
+
+        <div class="section-head">
+          <h3>Balance trend</h3>
+          <span style="font-size:12px; color: var(--text-muted);">Last 30 days</span>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-stats">
+            <span><span class="k">Low</span><span class="v">$9,120.00</span></span>
+            <span><span class="k">High</span><span class="v">$13,082.00</span></span>
+          </div>
+          <svg viewBox="0 0 288 180" width="100%" height="180" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="balFillLight" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#1877F2" stop-opacity="0.22"/>
+                <stop offset="1" stop-color="#1877F2" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <line x1="12" y1="128" x2="276" y2="128" stroke="rgba(145,158,171,0.26)" stroke-width="1" stroke-dasharray="3 4"/>
+            <path fill="url(#balFillLight)"
+              d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36 L276,156 L12,156 Z"/>
+            <path fill="none" stroke="#1877F2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+              d="M12,120 C30,118 44,124 60,118 C80,110 96,116 114,108 C134,96 150,90 168,78 C188,66 204,58 224,48 C244,40 258,38 276,36"/>
+          </svg>
+          <div class="chart-x">
+            <span>Mar 24</span>
+            <span>Apr 22</span>
+          </div>
+        </div>
+
+        <a class="see-all-link">View all records →</a>
+
+        <button class="fab">＋</button>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>L3</strong> Dashboard</div>
+  </div>
+
+  <!-- ========= L4. RECORDS LIST ========= -->
+  <div class="phone-wrap">
+    <div class="phone theme-light">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body records-screen">
+        <div class="appbar">
+          <button class="icon-btn">‹</button>
+          <div class="title"><h1>Records</h1><div class="subtitle">142 total · 28 shown</div></div>
+          <button class="icon-btn" style="color: var(--primary);">＋</button>
+        </div>
+
+        <div class="search">Search title…</div>
+
+        <div class="chip-row">
+          <div class="chip active">All</div>
+          <div class="chip">Income</div>
+          <div class="chip">Expense</div>
+          <div class="chip">Food</div>
+          <div class="chip">Salary</div>
+          <div class="chip">Shopping</div>
+        </div>
+
+        <div class="list-scroll">
+          <div class="records-list">
+            <div class="record-row"><div class="avatar exp">−</div><div class="info"><div class="t">Office Supplies</div><div class="m">Shopping · Apr 22</div></div><div class="amt exp">−$128.90</div></div>
+            <div class="record-row"><div class="avatar inc">+</div><div class="info"><div class="t">April Salary</div><div class="m">Salary · Apr 20</div></div><div class="amt inc">+$4,800.00</div></div>
+            <div class="record-row"><div class="avatar exp">−</div><div class="info"><div class="t">Lunch — Yūrakuchō</div><div class="m">Food · Apr 19</div></div><div class="amt exp">−$22.50</div></div>
+            <div class="record-row"><div class="avatar exp">−</div><div class="info"><div class="t">Train pass · April</div><div class="m">Transport · Apr 18</div></div><div class="amt exp">−$78.00</div></div>
+            <div class="record-row"><div class="avatar inc">+</div><div class="info"><div class="t">Freelance · Kondo&nbsp;Co.</div><div class="m">Other · Apr 15</div></div><div class="amt inc">+$650.00</div></div>
+            <div class="record-row"><div class="avatar exp">−</div><div class="info"><div class="t">Electric · March</div><div class="m">Bills · Apr 12</div></div><div class="amt exp">−$94.40</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>L4</strong> Records · List</div>
+  </div>
+
+  <!-- ========= L5. RECORD FORM ========= -->
+  <div class="phone-wrap">
+    <div class="phone theme-light">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body form-screen">
+        <div class="appbar">
+          <button class="icon-btn">‹</button>
+          <div class="title"><h1>New record</h1></div>
+        </div>
+
+        <div class="content">
+          <div class="section-title">Payment type</div>
+          <div class="segmented">
+            <button>Income</button>
+            <button class="active-exp">Expense</button>
+          </div>
+
+          <div class="textfield"><label>Title</label><input type="text" value="Office Supplies" /></div>
+
+          <div class="section-title">Category</div>
+          <div class="chip-row">
+            <div class="chip">Salary</div>
+            <div class="chip">Food</div>
+            <div class="chip active">Shopping</div>
+            <div class="chip">Transport</div>
+            <div class="chip">Bills</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="textfield"><label>Amount</label><input type="text" value="128.90" /></div>
+            <div class="textfield"><label>Date</label><input type="text" value="2026-04-22" /></div>
+          </div>
+
+          <div class="textfield">
+            <label>Description</label>
+            <textarea rows="3">Notebooks, pens, desk mat from Monday drop-in.</textarea>
+          </div>
+
+          <div class="section-title">Images</div>
+          <div class="image-grid">
+            <div class="image-tile"><div class="x">×</div></div>
+            <div class="image-tile"><div class="x">×</div></div>
+            <div class="image-tile add">＋</div>
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <button class="btn btn-outlined" style="flex:1;">Cancel</button>
+          <button class="btn btn-contained" style="flex:1;">Save</button>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>L5</strong> Record · New/Edit</div>
+  </div>
+
+  <!-- ========= L6. RECORD DETAIL ========= -->
+  <div class="phone-wrap">
+    <div class="phone theme-light">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body detail-screen">
+        <div class="appbar">
+          <button class="icon-btn">‹</button>
+          <div class="title"><h1>Detail</h1></div>
+          <button class="icon-btn">⋯</button>
+        </div>
+
+        <div class="gallery"><div class="zoom-hint">tap to zoom</div></div>
+
+        <div class="meta">
+          <div class="cat">Shopping</div>
+          <h1>Office Supplies</h1>
+          <div class="date">22 April 2026 · 3 images</div>
+        </div>
+
+        <div class="amount-card">
+          <div class="l">Amount</div>
+          <div class="amt">−$128.90</div>
+        </div>
+
+        <div class="desc">
+          <div class="l">Description</div>
+          <div class="body">Notebooks, pens, desk mat from the Monday drop-in at Yūrakuchō Loft.</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-outlined">Edit</button>
+          <button class="btn btn-danger-outlined">Delete</button>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>L6</strong> Record · Detail</div>
+  </div>
+
+  <!-- ========= L7. SETTINGS ========= -->
+  <div class="phone-wrap">
+    <div class="phone theme-light">
+      <div class="status-bar"><span>9:41</span><span>· · ·</span></div>
+      <div class="screen-body settings-screen">
+        <div class="appbar">
+          <button class="icon-btn">‹</button>
+          <div class="title"><h1>Settings</h1></div>
+        </div>
+
+        <div class="content">
+          <div class="settings-group">
+            <div class="section-title">Appearance</div>
+            <div class="settings-toggle">
+              <div class="chip">System</div>
+              <div class="chip active">Light</div>
+              <div class="chip">Dark</div>
+            </div>
+            <div class="section-title" style="margin-top:20px;">Language</div>
+            <div class="settings-toggle">
+              <div class="chip active">English</div>
+              <div class="chip">中文</div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="section-title">Security</div>
+            <div class="textfield"><label>Current password</label><input type="password" placeholder="••••••••" /></div>
+            <div class="textfield"><label>New password</label><input type="password" placeholder="••••••••" /></div>
+            <button class="btn btn-outlined full">Change password</button>
+          </div>
+
+          <div class="settings-group">
+            <div class="section-title">License</div>
+            <div class="license-box">
+              <div class="l">Serial Number</div>
+              <div class="v">A1B2-C3D4-E5F6-7890</div>
+              <div class="l">License Key</div>
+              <div class="v">12345-67890-11121-31415-16171</div>
+              <button class="btn btn-danger-outlined full">Deactivate license</button>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="section-title">Data</div>
+            <div class="stack-buttons">
+              <button class="btn btn-contained full">Backup to file</button>
+              <button class="btn btn-outlined full">Restore from backup</button>
+              <button class="btn btn-text full">Change backup folder</button>
+            </div>
+          </div>
+
+          <div class="settings-group" style="margin-top:40px; padding-top:20px; border-top:1px solid var(--divider);">
+            <div class="section-title" style="color: var(--error);">Danger zone</div>
+            <div class="stack-buttons">
+              <button class="btn btn-danger full">Clear all records</button>
+              <button class="btn btn-text full">Log out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-caption"><strong>L7</strong> Settings</div>
+  </div>
+
+</section>
+
+<!-- ============================================================
+     RATIONALE
+     ============================================================ -->
+<section class="rationale">
+  <div class="eyebrow">Design rationale</div>
+  <h2>What changed from v2</h2>
+  <div class="rationale-grid">
+    <div>
+      <h3>Navy instead of black</h3>
+      <p>Deep navy (#0A1628) as the base gives warmth without losing premium feel. Surfaces step up in blue tint instead of gray, following Material Design elevation.</p>
+    </div>
+    <div>
+      <h3>MUI component patterns</h3>
+      <p>Contained / outlined / text button variants, outlined TextField with floating label, FAB with Material shadow, Paper-style cards with soft dividers. Feels consistent with any modern MUI app.</p>
+    </div>
+    <div>
+      <h3>Generous auth padding</h3>
+      <p>Login and Activation now use 28px horizontal + 32px top padding. Buttons and inputs no longer touch screen edges. Form rhythm uses 16–20px gaps for breathing room.</p>
+    </div>
+    <div>
+      <h3>Ornament removed</h3>
+      <p>No italic emphasis words, no uppercase tracked-out labels, no gold underline accents, no editorial wordmarks. Labels are normal-case, muted color. Clean, not magazine-y.</p>
+    </div>
+    <div>
+      <h3>Flat hero</h3>
+      <p>Dashboard balance card is now a plain surface with a clean number — no radial glow or gradient. Lets the data lead. Income / expense cards use color only on the label.</p>
+    </div>
+    <div>
+      <h3>Simpler typography</h3>
+      <p>Headlines at weight 600 (not 800), letter-spacing −0.3px (not −1.2px). Money numbers get tabular figures at weight 700. OS font only, no web fonts loaded.</p>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
