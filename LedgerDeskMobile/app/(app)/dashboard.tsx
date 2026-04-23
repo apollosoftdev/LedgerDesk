@@ -139,7 +139,15 @@ export default function Dashboard() {
           },
         ]}
       >
-        <Text style={{ color: colors.onPrimary, fontSize: 28, fontWeight: '300', lineHeight: 32 }}>＋</Text>
+        <Text style={{
+          color: colors.onPrimary,
+          fontSize: 30,
+          fontWeight: '400',
+          lineHeight: 30,
+          // Tiny nudge: most fonts place the '+' glyph with slight top-heavy
+          // optical weight; 1px down centers it visually inside the circle.
+          marginTop: 1,
+        }}>+</Text>
       </Pressable>
     </Screen>
   );
