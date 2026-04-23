@@ -13,7 +13,7 @@ export function Card({ children, style, elevation = 'sm', padded = true, ...rest
   const shadowStyle =
     elevation === 'none' ? undefined :
     elevation === 'md'   ? shadow.md :
-    elevation === 'lg'   ? shadow.lg : shadow.sm;
+    elevation === 'lg'   ? shadow.lg : shadow.lg;
 
   return (
     <View
